@@ -7,8 +7,8 @@ This repo contains scripts to recreate a Vivado and xSDK project Zynq PS connect
 These scripts are assuming Linux operation system (Ubuntu 18.04) and Vivado 2018.2.
 
 Follow these instructions to recreate the Vivado and SDK projects:
- - Open the *build.sh* script and edit the first two lines to setup the environment variables 
-*VIVADO* and *VIVADO_DESIGN_NAME*. 
+ - Open the **build.sh** script and edit the first two lines to setup the environment variables 
+**VIVADO** and **VIVADO_DESIGN_NAME**, and **VIVADO_TOP_NAME** (optional). 
  - run *build.sh*
 
 These scripts will recreate the entire Vivado project, compile the design, and generate the bitstream, export the hardware to SDK, create the SDK projects, import the source files, and build all projects. Hopefully, all the steps will be executed automatically.
@@ -18,8 +18,7 @@ These scripts will recreate the entire Vivado project, compile the design, and g
  - update the scripts to Vitis
  - make the script more generic, for example, board independent
  - support bitstream download and elf download
- - support IP cores in the Vivado project
- - support to Windows (help required !!! :D )
+ - support or test with Windows (help required !!! :D )
 
 # Credits
 

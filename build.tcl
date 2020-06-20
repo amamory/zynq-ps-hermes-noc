@@ -1,5 +1,5 @@
 #
-# build.tcl: Tcl script for re-creating project 'zedboard_base'
+# build.tcl: re-creating a Vivado project
 #
 #*****************************************************************************************
 
@@ -24,13 +24,23 @@ if { ![info exists env(VIVADO_DESIGN_NAME)] } {
 set design_name $::env(VIVADO_DESIGN_NAME)
 puts "Using design name: ${design_name}"
 
+if { ![info exists env(VIVADO_TOP_NAME)] } {
+    puts "No top design defined. Using the default top name ${design_name}_wrapper"
+    set top_name ${design_name}_wrapper
+} else {
+  set top_name $::env(VIVADO_TOP_NAME)
+  puts "Using top name: ${top_name}"
+}
+
 # Set the reference directory for source file relative paths (by default the value is script directory path)
 set origin_dir "."
 
 # Set the directory path for the original project from where this script was exported
 set orig_proj_dir "[file normalize "$origin_dir/vivado/$design_name"]"
 
-# Create project
+# Create a fresh project
+file delete -force ${orig_proj_dir}
+file mkdir ${orig_proj_dir}
 create_project -force  $design_name $orig_proj_dir -part xc7z020clg484-1
 
 
@@ -38,8 +48,8 @@ create_project -force  $design_name $orig_proj_dir -part xc7z020clg484-1
 set proj_dir [get_property directory [current_project]]
 
 # Set project properties
-set obj [get_projects $design_name]
-set_property -name "board_part" -value "em.avnet.com:zed:part0:1.3" -objects $obj
+set obj [current_project]
+set_property -name "board_part" -value "em.avnet.com:zed:part0:1.4" -objects $obj
 set_property -name "default_lib" -value "xil_defaultlib" -objects $obj
 set_property -name "ip_cache_permissions" -value "read write" -objects $obj
 set_property -name "ip_output_repo" -value "$proj_dir/$design_name.cache/ip" -objects $obj
@@ -47,7 +57,7 @@ set_property -name "sim.ip.auto_export_scripts" -value "1" -objects $obj
 set_property -name "simulator_language" -value "Mixed" -objects $obj
 
 # set path to custom IPs
-set_property  ip_repo_paths  ./vivado/ips [current_project]
+set_property  ip_repo_paths ./hw/ips [current_project]
 update_ip_catalog
 
 
@@ -61,7 +71,41 @@ if {[string equal [get_filesets -quiet sources_1] ""]} {
 set obj [get_filesets sources_1]
 set_property "top" "${design_name}_wrapper" $obj
 
-# TODO insert all the vhdl and verilog source files from ./hw/hdl into the project
+set_property "top" "Router_Board" $obj
+
+# Insert all the vhdl, sv, and verilog source files from ./hw/hdl into the project
+set hdl_files [glob -nocomplain -directory $origin_dir/hw/hdl/ *{*.vhd,*.v,*.sv}*]
+puts $hdl_files
+
+foreach hdl_file $hdl_files {
+  set file "[file normalize "$hdl_file"]"
+  puts $file
+  add_files -quiet -fileset sources_1 $file
+  set file_obj [get_files -of_objects [get_filesets sources_1] $file]
+  set extension [string tolower [file extension $file]]
+  if {$extension == ".vhd"} {
+    set hdl_type "VHDL"
+    # this property is only valid for vhdl
+    set_property -name "library" -value "work" -objects $file_obj
+  } elseif {$extension == ".v"} {
+    set hdl_type "Verilog"
+  } elseif {$extension == ".sv"} {
+    set hdl_type "SystemVerilog"
+  } else {
+    puts "ERROR: HDL extension $extension is not supported"
+    return
+  }
+  set_property -name "file_type" -value $hdl_type -objects $file_obj
+}
+
+# Import IP-XACT config files if they exist
+set ip_files [glob -nocomplain -directory $origin_dir/hw/ips/ "*.xml"]
+foreach ip_file $ip_files {
+  set file "[file normalize "$ip_file"]"
+  add_files -quiet -fileset sources_1 $file
+  set file_obj [get_files -of_objects [get_filesets sources_1] $file]
+  set_property -name "file_type" -value "IP-XACT" -objects $file_obj
+}
 
 
 # Create 'constrs_1' fileset (if not found)
@@ -73,19 +117,20 @@ if {[string equal [get_filesets -quiet constrs_1] ""]} {
 set obj [get_filesets constrs_1]
 
 # Add/Import constrs file and set constrs file properties
-# TODO insert all XDC files from ./hw/xdc into the project
-set constr_files [glob $origin_dir/hw/xdc/*.xdc]
+set constr_files [glob -nocomplain -directory $origin_dir/hw/xdc/ "*.xdc"]
 
-#set file "[file normalize "$origin_dir/hw/xdc/const.xdc"]"
-set file "[file normalize "$constr_files"]"
-set file_added [add_files -norecurse -fileset $obj [list $file]]
-set file_obj [get_files -of_objects [get_filesets constrs_1] [list "*$file"]]
-set_property -name "file_type" -value "XDC" -objects $file_obj
+foreach constr_file $constr_files {
+  set file "[file normalize "$constr_file"]"
+  add_files -quiet -fileset $obj [list $file]
+  set file_obj [get_files -of_objects [get_filesets constrs_1] $file]
+  set_property -name "file_type" -value "XDC" -objects $file_obj
 
-# Set 'constrs_1' fileset properties
-set obj [get_filesets constrs_1]
-set_property -name "target_constrs_file" -value "[get_files $file]" -objects $obj
-set_property -name "target_ucf" -value "[get_files $file]" -objects $obj
+  # Set 'constrs_1' fileset properties
+  set obj [get_filesets constrs_1]
+  set_property -name "target_constrs_file" -value "[get_files $file]" -objects $obj
+  set_property -name "target_ucf" -value "[get_files $file]" -objects $obj
+}
+
 
 # Create 'sim_1' fileset (if not found)
 if {[string equal [get_filesets -quiet sim_1] ""]} {
@@ -94,13 +139,37 @@ if {[string equal [get_filesets -quiet sim_1] ""]} {
 
 # Set 'sim_1' fileset object
 set obj [get_filesets sim_1]
+set_property -name "sim_mode" -value "post-implementation" -objects $obj
+#TODO assuming the testbench name is tb. is it possible to find it out automatically ?
+set_property -name "top" -value "tb" -objects $obj
+set_property -name "top_lib" -value "xil_defaultlib" -objects $obj
+# Import testbenches, waveform files, etc if they exist
+set sim_files [glob -nocomplain -directory $origin_dir/hw/hdl/sim *{*.vhd,*.v,*.sv}*]
 
-# Empty (no sources present)
-# place here testbenches, waveform files, etc
+foreach sim_file $sim_files {
+  set file "[file normalize "$sim_file"]"
+  add_files -quiet -fileset sim_1 $file
+  set file_obj [get_files -of_objects [get_filesets sim_1] $file]
+  set extension [string tolower [file extension $file]]
+  if {$extension == ".vhd"} {
+    set hdl_type "VHDL"
+  } elseif {$extension == ".v"} {
+    set hdl_type "Verilog"
+  } elseif {$extension == ".sv"} {
+    set hdl_type "SystemVerilog"
+  } else {
+    puts "ERROR: HDL extension $extension is not supported"
+    return
+  }
+  set_property -name "file_type" -value $hdl_type -objects $file_obj
+  #TODO can i replace the lib by work ?
+  set_property -name "library" -value "work" -objects $file_obj
+}
 
-# Set 'sim_1' fileset properties
-set obj [get_filesets sim_1]
-set_property "top" "${design_name}_wrapper" $obj
+# waveform files are simply added to the project. no property is set
+set wcfg_files [glob -nocomplain -directory $origin_dir/hw/hdl/sim "*.wcfg"]
+add_files -quiet -fileset sim_1 $wcfg_files
+
 
 # Create 'synth_1' run (if not found)
 if {[string equal [get_runs -quiet synth_1] ""]} {
@@ -137,26 +206,34 @@ if { [get_projects -quiet] eq "" } {
    return 1
 }
 
-# Create and empty block design
-create_bd_design $design_name
-current_bd_design $design_name
 
 # Find the block tcl script and create the block design
-set block_file [glob $origin_dir/hw/bd/*.tcl]
-# TODO check if there is only one tcl file
-source $block_file
-create_root_design ""
+set block_files [glob -nocomplain -directory $origin_dir/hw/bd/ "*.tcl"]
 
-# Generate the wrapper
-make_wrapper -files [get_files *${design_name}.bd] -top
-add_files -norecurse ./vivado/${design_name}/${design_name}.srcs/sources_1/bd/${design_name}/hdl/${design_name}_wrapper.v
+if {[llength $block_files] == 1} {
+  # Create and empty block design
+  create_bd_design $design_name
+  current_bd_design $design_name
+  source $block_file
+  create_root_design ""
+
+  # Generate the wrapper
+  make_wrapper -files [get_files *${design_name}.bd] -top
+  # It is asuming that if there is a block file, its wrapper will be the top 
+  add_files -norecurse ./vivado/${design_name}/${design_name}.srcs/sources_1/bd/${design_name}/hdl/${top_name}.v
+} elseif {[llength $block_files] > 1} {
+  puts "ERROR: multiple block files found. The script only supports one block per design"
+  return
+}
 
 # Update the compile order
 update_compile_order -fileset sources_1
 update_compile_order -fileset sim_1
 
-# Ensure parameter propagation has been performed
-close_bd_design [current_bd_design]
-open_bd_design [get_files ${design_name}.bd]
-validate_bd_design -force
-save_bd_design
+# If this design is block-basedm then ensure parameter propagation has been performed
+if {[llength $block_files] == 1} {
+  close_bd_design [current_bd_design]
+  open_bd_design [get_files ${design_name}.bd]
+  validate_bd_design -force
+  save_bd_design
+}

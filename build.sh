@@ -8,18 +8,26 @@ if [ -f $VIVADO ]; then
   echo "###################################"
   $VIVADO -mode batch -source build.tcl
   echo "#########################"
-  echo "### Writing bitstream ###"
+  echo "######## Synthesis ######"
   echo "#########################"
   $VIVADO -mode batch -source build_bitstream_export_sdk.tcl
-  echo "#########################"
-  echo "### Compiling w SDK  ###"
-  echo "#########################"
-  xsct sdk.tcl
-  echo "####################################"
-  echo "### End of software compilation  ###"
-  echo "####################################"
-  echo "execute the following command to launch SDK GUI"
-  echo "xsdk -workspace ./vivado/${VIVADO_DESIGN_NAME}/${VIVADO_DESIGN_NAME}.sdk/ -hwspec ./vivado/${VIVADO_DESIGN_NAME}/${VIVADO_DESIGN_NAME}.sdk/${VIVADO_DESIGN_NAME}_wrapper.hdf"
+  # check whether there is any software to be compiled, i.e., if there is any dir inside src/
+  list_dirs=`ls -d ./src/*/ 2> /dev/null`
+  # build a bash list 
+  has_software=($list_dirs)
+  # check if len(list) > 0
+  if [ "${#has_software[@]}" -gt 0 ]; 
+  then
+    echo "#########################"
+    echo "### Compiling w SDK  ###"
+    echo "#########################"
+    xsct sdk.tcl
+    echo "####################################"
+    echo "### End of software compilation  ###"
+    echo "####################################"
+    echo "execute the following command to launch SDK GUI"
+    echo "xsdk -workspace ./vivado/${VIVADO_DESIGN_NAME}/${VIVADO_DESIGN_NAME}.sdk/ -hwspec ./vivado/${VIVADO_DESIGN_NAME}/${VIVADO_DESIGN_NAME}.sdk/${VIVADO_DESIGN_NAME}_wrapper.hdf"
+  fi;
 elif [ -f ~/.bash_aliases ]; then
   echo ""
   echo "###############################"
