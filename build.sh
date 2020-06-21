@@ -11,6 +11,13 @@ if [ -f $VIVADO ]; then
   echo "######## Synthesis ######"
   echo "#########################"
   $VIVADO -mode batch -source build_bitstream_export_sdk.tcl
+  echo "#########################"
+  echo "### Loading bitstream ###"
+  echo "#########################"
+  $VIVADO -mode batch -source download_bitstream.tcl
+  echo "#########################"
+  echo "### Bitstream loaded ####"
+  echo "#########################"
   # check whether there is any software to be compiled, i.e., if there is any dir inside src/
   list_dirs=`ls -d ./src/*/ 2> /dev/null`
   # build a bash list 
@@ -26,7 +33,14 @@ if [ -f $VIVADO ]; then
     echo "### End of software compilation  ###"
     echo "####################################"
     echo "execute the following command to launch SDK GUI"
-    echo "xsdk -workspace ./vivado/${VIVADO_DESIGN_NAME}/${VIVADO_DESIGN_NAME}.sdk/ -hwspec ./vivado/${VIVADO_DESIGN_NAME}/${VIVADO_DESIGN_NAME}.sdk/${VIVADO_DESIGN_NAME}_wrapper.hdf"
+    echo "xsdk -workspace ./vivado/${VIVADO_DESIGN_NAME}/${VIVADO_DESIGN_NAME}.sdk/ -hwspec ./vivado/${VIVADO_DESIGN_NAME}/${VIVADO_DESIGN_NAME}.sdk/${VIVADO_TOP_NAME}.hdf"
+    echo "#########################"
+    echo "## Loading application ##"
+    echo "#########################"
+    xsct download_elf.tcl
+    echo "#########################"
+    echo "## Application loaded ###"
+    echo "#########################"
   fi;
 elif [ -f ~/.bash_aliases ]; then
   echo ""

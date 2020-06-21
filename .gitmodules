@@ -1,0 +1,3 @@
+[submodule "Router_Board"]
+	path = hw/ips/Router_Board
+	url = https://github.com/amamory/hermes-noc-tester-vivado-ip.git

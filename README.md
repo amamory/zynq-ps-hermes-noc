@@ -8,16 +8,15 @@ These scripts are assuming Linux operation system (Ubuntu 18.04) and Vivado 2018
 
 Follow these instructions to recreate the Vivado and SDK projects:
  - Open the **build.sh** script and edit the first two lines to setup the environment variables 
-**VIVADO** and **VIVADO_DESIGN_NAME**, and **VIVADO_TOP_NAME** (optional). 
+**VIVADO**, **VIVADO_DESIGN_NAME**, **XIL_APP_NAME**, and **VIVADO_TOP_NAME** (optional). 
  - run *build.sh*
 
-These scripts will recreate the entire Vivado project, compile the design, and generate the bitstream, export the hardware to SDK, create the SDK projects, import the source files, and build all projects. Hopefully, all the steps will be executed automatically.
+These scripts will recreate the entire Vivado project, compile the design, and generate the bitstream, export the hardware to SDK, create the SDK projects, import the source files, and build all projects, and finally downaload both the bitstream and the elf application. Hopefully, all the steps will be executed automatically.
 
 # Future work
 
  - update the scripts to Vitis
  - make the script more generic, for example, board independent
- - support bitstream download and elf download
  - support or test with Windows (help required !!! :D )
 
 # Credits
