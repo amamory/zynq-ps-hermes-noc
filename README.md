@@ -2,6 +2,26 @@
 
 This repo contains scripts to recreate a Vivado and xSDK project Zynq PS connected to a [Hermes network-on-chip router](https://www.sciencedirect.com/science/article/abs/pii/S0167926004000185) via AXI streaming interface. The project is setup for Zedboard, although it would be easy to change to other boards assuming you have some basic TCL skills.
 
+# The module design
+
+![the design](ps_hermes.png)
+
+# How to download it
+
+This repository has custom IPs included as git submodules. Thus, the following command is required to download all its depedencies.
+
+```
+git clone --recursive https://github.com/amamory/zynq-ps-hermes-noc.git
+```
+
+If you alread cloned the repository without `--recursive`, then run the following command to download all the submodules.
+
+```
+git submodule update --init --recursive
+```
+
+Refer to this [tutorial](https://www.vogella.com/tutorials/GitSubmodules/article.html) to learn how to manage submodules.
+
 # How to run it
 
 These scripts are assuming Linux operation system (Ubuntu 18.04) and Vivado 2018.2.
@@ -11,7 +31,7 @@ Follow these instructions to recreate the Vivado and SDK projects:
 **VIVADO**, **VIVADO_DESIGN_NAME**, **XIL_APP_NAME**, and **VIVADO_TOP_NAME** (optional). 
  - run *build.sh*
 
-These scripts will recreate the entire Vivado project, compile the design, and generate the bitstream, export the hardware to SDK, create the SDK projects, import the source files, and build all projects, and finally downaload both the bitstream and the elf application. Hopefully, all the steps will be executed automatically.
+These scripts will recreate the entire Vivado project, compile the design, generate the bitstream, export the hardware to SDK, create the SDK projects, import the source files, build all projects, and finally downaload both the bitstream and the elf application. Hopefully, all these steps will be executed automatically.
 
 # Future work
 
