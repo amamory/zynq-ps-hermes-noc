@@ -69,9 +69,8 @@ if {[string equal [get_filesets -quiet sources_1] ""]} {
 
 # Set 'sources_1' fileset properties
 set obj [get_filesets sources_1]
-set_property "top" "${design_name}_wrapper" $obj
+set_property "top" "${top_name}" $obj
 
-set_property "top" "Router_Board" $obj
 
 # Insert all the vhdl, sv, and verilog source files from ./hw/hdl into the project
 set hdl_files [glob -nocomplain -directory $origin_dir/hw/hdl/ *{*.vhd,*.v,*.sv}*]
@@ -79,7 +78,6 @@ puts $hdl_files
 
 foreach hdl_file $hdl_files {
   set file "[file normalize "$hdl_file"]"
-  puts $file
   add_files -quiet -fileset sources_1 $file
   set file_obj [get_files -of_objects [get_filesets sources_1] $file]
   set extension [string tolower [file extension $file]]
