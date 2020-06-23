@@ -1,3 +1,12 @@
 [submodule "Router_Board"]
 	path = hw/ips/Router_Board
 	url = https://github.com/amamory/hermes-noc-tester-vivado-ip.git
+[submodule "hw/ips/m-axis-dip-ip"]
+	path = hw/ips/m-axis-dip-ip
+	url = https://github.com/amamory/m-axis-dip-ip.git
+[submodule "hw/ips/s-axis-led-ip"]
+	path = hw/ips/s-axis-led-ip
+	url = https://github.com/amamory/s-axis-led-ip.git
+[submodule "hw/ips/hermes-router-axis-ip"]
+	path = hw/ips/hermes-router-axis-ip
+	url = https://github.com/amamory/hermes-router-axis-ip.git
