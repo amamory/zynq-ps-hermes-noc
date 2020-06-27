@@ -1,6 +1,6 @@
 
 ################################################################
-# This is a generated script based on design: design_1
+# This is a generated script based on design: ps_hermes3
 #
 # Though there are limitations about the generated script,
 # the main purpose of this utility is to make learning
@@ -35,7 +35,7 @@ if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
 ################################################################
 
 # To test this script, run the following commands from Vivado Tcl console:
-# source design_1_script.tcl
+# source ps_hermes3_script.tcl
 
 set bCheckIPsPassed 1
 ##################################################################
@@ -44,12 +44,18 @@ set bCheckIPsPassed 1
 set bCheckIPs 1
 if { $bCheckIPs == 1 } {
    set list_check_ips "\ 
-user.org:user:Router_Board:1.1\
+xilinx.com:ip:util_vector_logic:2.0\
+xilinx.com:ip:xlconcat:2.1\
+xilinx.com:ip:xlslice:1.0\
 xilinx.com:ip:axi_dma:7.1\
 xilinx.com:ip:smartconnect:1.0\
-xilinx.com:ip:xlconcat:2.1\
 xilinx.com:ip:processing_system7:5.5\
 xilinx.com:ip:proc_sys_reset:5.0\
+user.org:user:RouterCC:1.0\
+user.org:user:Router_Sink:1.0\
+user.org:user:Router_Source:1.0\
+user.org:user:axis_m_const:1.0\
+xilinx.com:ip:xlconstant:1.1\
 "
 
    set list_ips_missing ""
@@ -78,6 +84,225 @@ if { $bCheckIPsPassed != 1 } {
 # DESIGN PROCs
 ##################################################################
 
+
+# Hierarchical cell: R11
+proc create_hier_cell_R11 { parentCell nameHier } {
+
+  variable script_folder
+
+  if { $parentCell eq "" || $nameHier eq "" } {
+     catch {common::send_msg_id "BD_TCL-102" "ERROR" "create_hier_cell_R11() - Empty argument(s)!"}
+     return
+  }
+
+  # Get object for parentCell
+  set parentObj [get_bd_cells $parentCell]
+  if { $parentObj == "" } {
+     catch {common::send_msg_id "BD_TCL-100" "ERROR" "Unable to find parent cell <$parentCell>!"}
+     return
+  }
+
+  # Make sure parentObj is hier blk
+  set parentType [get_property TYPE $parentObj]
+  if { $parentType ne "hier" } {
+     catch {common::send_msg_id "BD_TCL-101" "ERROR" "Parent <$parentObj> has TYPE = <$parentType>. Expected to be <hier>."}
+     return
+  }
+
+  # Save current instance; Restore later
+  set oldCurInst [current_bd_instance .]
+
+  # Set parent object as current
+  current_bd_instance $parentObj
+
+  # Create cell and set as current instance
+  set hier_obj [create_bd_cell -type hier $nameHier]
+  current_bd_instance $hier_obj
+
+  # Create interface pins
+  create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0 L_s
+  create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 W_m
+  create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0 W_s
+
+  # Create pins
+  create_bd_pin -dir I -type clk clock
+  create_bd_pin -dir I -from 7 -to 0 dip_i
+  create_bd_pin -dir I end_i
+  create_bd_pin -dir O -from 3 -to 0 led_o
+  create_bd_pin -dir I -type rst reset
+  create_bd_pin -dir I send_i
+
+  # Create instance: RouterCC_0, and set properties
+  set RouterCC_0 [ create_bd_cell -type ip -vlnv user.org:user:RouterCC:1.0 RouterCC_0 ]
+
+  # Create instance: Router_Sink_L, and set properties
+  set Router_Sink_L [ create_bd_cell -type ip -vlnv user.org:user:Router_Sink:1.0 Router_Sink_L ]
+
+  # Create instance: Router_Sink_N, and set properties
+  set Router_Sink_N [ create_bd_cell -type ip -vlnv user.org:user:Router_Sink:1.0 Router_Sink_N ]
+
+  # Create instance: Router_Sink_S, and set properties
+  set Router_Sink_S [ create_bd_cell -type ip -vlnv user.org:user:Router_Sink:1.0 Router_Sink_S ]
+
+  # Create instance: Router_Sink_W, and set properties
+  set Router_Sink_W [ create_bd_cell -type ip -vlnv user.org:user:Router_Sink:1.0 Router_Sink_W ]
+
+  # Create instance: Router_Source_E, and set properties
+  set Router_Source_E [ create_bd_cell -type ip -vlnv user.org:user:Router_Source:1.0 Router_Source_E ]
+
+  # Create instance: axis_m_const_N, and set properties
+  set axis_m_const_N [ create_bd_cell -type ip -vlnv user.org:user:axis_m_const:1.0 axis_m_const_N ]
+
+  # Create instance: axis_m_const_S, and set properties
+  set axis_m_const_S [ create_bd_cell -type ip -vlnv user.org:user:axis_m_const:1.0 axis_m_const_S ]
+
+  # Create instance: xlconcat_0, and set properties
+  set xlconcat_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 xlconcat_0 ]
+  set_property -dict [ list \
+   CONFIG.NUM_PORTS {4} \
+ ] $xlconcat_0
+
+  # Create interface connections
+  connect_bd_intf_net -intf_net Conn1 [get_bd_intf_pins L_s] [get_bd_intf_pins RouterCC_0/L_s]
+  connect_bd_intf_net -intf_net E_s_1 [get_bd_intf_pins W_s] [get_bd_intf_pins RouterCC_0/W_s]
+  connect_bd_intf_net -intf_net RouterCC_0_E_m [get_bd_intf_pins RouterCC_0/E_m] [get_bd_intf_pins Router_Sink_W/axis_s]
+  connect_bd_intf_net -intf_net RouterCC_0_L_m [get_bd_intf_pins RouterCC_0/L_m] [get_bd_intf_pins Router_Sink_L/axis_s]
+  connect_bd_intf_net -intf_net RouterCC_0_N_m [get_bd_intf_pins RouterCC_0/N_m] [get_bd_intf_pins Router_Sink_N/axis_s]
+  connect_bd_intf_net -intf_net RouterCC_0_S_m [get_bd_intf_pins RouterCC_0/S_m] [get_bd_intf_pins Router_Sink_S/axis_s]
+  connect_bd_intf_net -intf_net RouterCC_0_W_m [get_bd_intf_pins W_m] [get_bd_intf_pins RouterCC_0/W_m]
+  connect_bd_intf_net -intf_net Router_Source_W_axis_m [get_bd_intf_pins RouterCC_0/E_s] [get_bd_intf_pins Router_Source_E/axis_m]
+  connect_bd_intf_net -intf_net axis_m_const_0_m [get_bd_intf_pins RouterCC_0/S_s] [get_bd_intf_pins axis_m_const_S/m]
+  connect_bd_intf_net -intf_net axis_m_const_1_m [get_bd_intf_pins RouterCC_0/N_s] [get_bd_intf_pins axis_m_const_N/m]
+
+  # Create port connections
+  connect_bd_net -net Net [get_bd_pins clock] [get_bd_pins RouterCC_0/clock] [get_bd_pins Router_Sink_L/clock] [get_bd_pins Router_Sink_N/clock] [get_bd_pins Router_Sink_S/clock] [get_bd_pins Router_Sink_W/clock] [get_bd_pins Router_Source_E/clock] [get_bd_pins axis_m_const_N/clock] [get_bd_pins axis_m_const_S/clock]
+  connect_bd_net -net Net1 [get_bd_pins reset] [get_bd_pins RouterCC_0/reset] [get_bd_pins Router_Sink_L/reset] [get_bd_pins Router_Sink_N/reset] [get_bd_pins Router_Sink_S/reset] [get_bd_pins Router_Sink_W/reset] [get_bd_pins Router_Source_E/reset] [get_bd_pins axis_m_const_N/reset] [get_bd_pins axis_m_const_S/reset]
+  connect_bd_net -net Net2 [get_bd_pins dip_i] [get_bd_pins Router_Source_E/dip_i]
+  connect_bd_net -net Router_Sink_0_led_o [get_bd_pins Router_Sink_S/led_o] [get_bd_pins xlconcat_0/In2]
+  connect_bd_net -net Router_Sink_1_led_o [get_bd_pins Router_Sink_W/led_o] [get_bd_pins xlconcat_0/In0]
+  connect_bd_net -net Router_Sink_2_led_o [get_bd_pins Router_Sink_N/led_o] [get_bd_pins xlconcat_0/In1]
+  connect_bd_net -net Router_Sink_3_led_o [get_bd_pins Router_Sink_L/led_o] [get_bd_pins xlconcat_0/In3]
+  connect_bd_net -net end_i_1 [get_bd_pins end_i] [get_bd_pins Router_Source_E/end_i]
+  connect_bd_net -net send_i_1 [get_bd_pins send_i] [get_bd_pins Router_Source_E/send_i]
+  connect_bd_net -net xlconcat_0_dout [get_bd_pins led_o] [get_bd_pins xlconcat_0/dout]
+
+  # Restore current instance
+  current_bd_instance $oldCurInst
+}
+
+# Hierarchical cell: R01
+proc create_hier_cell_R01 { parentCell nameHier } {
+
+  variable script_folder
+
+  if { $parentCell eq "" || $nameHier eq "" } {
+     catch {common::send_msg_id "BD_TCL-102" "ERROR" "create_hier_cell_R01() - Empty argument(s)!"}
+     return
+  }
+
+  # Get object for parentCell
+  set parentObj [get_bd_cells $parentCell]
+  if { $parentObj == "" } {
+     catch {common::send_msg_id "BD_TCL-100" "ERROR" "Unable to find parent cell <$parentCell>!"}
+     return
+  }
+
+  # Make sure parentObj is hier blk
+  set parentType [get_property TYPE $parentObj]
+  if { $parentType ne "hier" } {
+     catch {common::send_msg_id "BD_TCL-101" "ERROR" "Parent <$parentObj> has TYPE = <$parentType>. Expected to be <hier>."}
+     return
+  }
+
+  # Save current instance; Restore later
+  set oldCurInst [current_bd_instance .]
+
+  # Set parent object as current
+  current_bd_instance $parentObj
+
+  # Create cell and set as current instance
+  set hier_obj [create_bd_cell -type hier $nameHier]
+  current_bd_instance $hier_obj
+
+  # Create interface pins
+  create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 E_m
+  create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0 E_s
+  create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 L_m
+
+  # Create pins
+  create_bd_pin -dir I -type clk clock
+  create_bd_pin -dir I -from 7 -to 0 dip_i
+  create_bd_pin -dir I end_i
+  create_bd_pin -dir O -from 3 -to 0 led_o
+  create_bd_pin -dir I -type rst reset
+  create_bd_pin -dir I send_i
+
+  # Create instance: RouterCC_0, and set properties
+  set RouterCC_0 [ create_bd_cell -type ip -vlnv user.org:user:RouterCC:1.0 RouterCC_0 ]
+  set_property -dict [ list \
+   CONFIG.address {0x0001} \
+ ] $RouterCC_0
+
+  # Create instance: Router_Sink_N, and set properties
+  set Router_Sink_N [ create_bd_cell -type ip -vlnv user.org:user:Router_Sink:1.0 Router_Sink_N ]
+
+  # Create instance: Router_Sink_S, and set properties
+  set Router_Sink_S [ create_bd_cell -type ip -vlnv user.org:user:Router_Sink:1.0 Router_Sink_S ]
+
+  # Create instance: Router_Sink_W, and set properties
+  set Router_Sink_W [ create_bd_cell -type ip -vlnv user.org:user:Router_Sink:1.0 Router_Sink_W ]
+
+  # Create instance: Router_Source_W, and set properties
+  set Router_Source_W [ create_bd_cell -type ip -vlnv user.org:user:Router_Source:1.0 Router_Source_W ]
+
+  # Create instance: axis_m_const_L, and set properties
+  set axis_m_const_L [ create_bd_cell -type ip -vlnv user.org:user:axis_m_const:1.0 axis_m_const_L ]
+
+  # Create instance: axis_m_const_N, and set properties
+  set axis_m_const_N [ create_bd_cell -type ip -vlnv user.org:user:axis_m_const:1.0 axis_m_const_N ]
+
+  # Create instance: axis_m_const_S, and set properties
+  set axis_m_const_S [ create_bd_cell -type ip -vlnv user.org:user:axis_m_const:1.0 axis_m_const_S ]
+
+  # Create instance: xlconcat_0, and set properties
+  set xlconcat_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 xlconcat_0 ]
+  set_property -dict [ list \
+   CONFIG.NUM_PORTS {4} \
+ ] $xlconcat_0
+
+  # Create instance: xlconstant_E, and set properties
+  set xlconstant_E [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 xlconstant_E ]
+  set_property -dict [ list \
+   CONFIG.CONST_VAL {0} \
+ ] $xlconstant_E
+
+  # Create interface connections
+  connect_bd_intf_net -intf_net Conn1 [get_bd_intf_pins L_m] [get_bd_intf_pins RouterCC_0/L_m]
+  connect_bd_intf_net -intf_net RouterCC_0_E_m [get_bd_intf_pins E_m] [get_bd_intf_pins RouterCC_0/E_m]
+  connect_bd_intf_net -intf_net RouterCC_0_N_m [get_bd_intf_pins RouterCC_0/N_m] [get_bd_intf_pins Router_Sink_N/axis_s]
+  connect_bd_intf_net -intf_net RouterCC_0_S_m [get_bd_intf_pins RouterCC_0/S_m] [get_bd_intf_pins Router_Sink_S/axis_s]
+  connect_bd_intf_net -intf_net RouterCC_0_W_m [get_bd_intf_pins RouterCC_0/W_m] [get_bd_intf_pins Router_Sink_W/axis_s]
+  connect_bd_intf_net -intf_net Router_Source_1_axis_m [get_bd_intf_pins RouterCC_0/W_s] [get_bd_intf_pins Router_Source_W/axis_m]
+  connect_bd_intf_net -intf_net W_s_1 [get_bd_intf_pins E_s] [get_bd_intf_pins RouterCC_0/E_s]
+  connect_bd_intf_net -intf_net axis_m_const_0_m [get_bd_intf_pins RouterCC_0/N_s] [get_bd_intf_pins axis_m_const_N/m]
+  connect_bd_intf_net -intf_net axis_m_const_1_m [get_bd_intf_pins RouterCC_0/S_s] [get_bd_intf_pins axis_m_const_S/m]
+  connect_bd_intf_net -intf_net axis_m_const_2_m [get_bd_intf_pins RouterCC_0/L_s] [get_bd_intf_pins axis_m_const_L/m]
+
+  # Create port connections
+  connect_bd_net -net Net [get_bd_pins clock] [get_bd_pins RouterCC_0/clock] [get_bd_pins Router_Sink_N/clock] [get_bd_pins Router_Sink_S/clock] [get_bd_pins Router_Sink_W/clock] [get_bd_pins Router_Source_W/clock] [get_bd_pins axis_m_const_L/clock] [get_bd_pins axis_m_const_N/clock] [get_bd_pins axis_m_const_S/clock]
+  connect_bd_net -net Net1 [get_bd_pins reset] [get_bd_pins RouterCC_0/reset] [get_bd_pins Router_Sink_N/reset] [get_bd_pins Router_Sink_S/reset] [get_bd_pins Router_Sink_W/reset] [get_bd_pins Router_Source_W/reset] [get_bd_pins axis_m_const_L/reset] [get_bd_pins axis_m_const_N/reset] [get_bd_pins axis_m_const_S/reset]
+  connect_bd_net -net Router_Sink_N_led_o [get_bd_pins Router_Sink_N/led_o] [get_bd_pins xlconcat_0/In2]
+  connect_bd_net -net Router_Sink_S_led_o [get_bd_pins Router_Sink_S/led_o] [get_bd_pins xlconcat_0/In3]
+  connect_bd_net -net Router_Sink_W_led_o [get_bd_pins Router_Sink_W/led_o] [get_bd_pins xlconcat_0/In1]
+  connect_bd_net -net dip_i_1 [get_bd_pins dip_i] [get_bd_pins Router_Source_W/dip_i]
+  connect_bd_net -net end_i_1 [get_bd_pins end_i] [get_bd_pins Router_Source_W/end_i]
+  connect_bd_net -net send_i_1 [get_bd_pins send_i] [get_bd_pins Router_Source_W/send_i]
+  connect_bd_net -net xlconcat_0_dout [get_bd_pins led_o] [get_bd_pins xlconcat_0/dout]
+  connect_bd_net -net xlconstant_0_dout [get_bd_pins xlconcat_0/In0] [get_bd_pins xlconstant_E/dout]
+
+  # Restore current instance
+  current_bd_instance $oldCurInst
+}
 
 # Hierarchical cell: zynq
 proc create_hier_cell_zynq { parentCell nameHier } {
@@ -132,7 +357,7 @@ proc create_hier_cell_zynq { parentCell nameHier } {
    CONFIG.PCW_ACT_DCI_PERIPHERAL_FREQMHZ {10.158730} \
    CONFIG.PCW_ACT_ENET0_PERIPHERAL_FREQMHZ {125.000000} \
    CONFIG.PCW_ACT_ENET1_PERIPHERAL_FREQMHZ {10.000000} \
-   CONFIG.PCW_ACT_FPGA0_PERIPHERAL_FREQMHZ {10.000000} \
+   CONFIG.PCW_ACT_FPGA0_PERIPHERAL_FREQMHZ {100.000000} \
    CONFIG.PCW_ACT_FPGA1_PERIPHERAL_FREQMHZ {10.000000} \
    CONFIG.PCW_ACT_FPGA2_PERIPHERAL_FREQMHZ {10.000000} \
    CONFIG.PCW_ACT_FPGA3_PERIPHERAL_FREQMHZ {10.000000} \
@@ -155,7 +380,7 @@ proc create_hier_cell_zynq { parentCell nameHier } {
    CONFIG.PCW_CAN_PERIPHERAL_DIVISOR0 {1} \
    CONFIG.PCW_CAN_PERIPHERAL_DIVISOR1 {1} \
    CONFIG.PCW_CAN_PERIPHERAL_FREQMHZ {100} \
-   CONFIG.PCW_CLK0_FREQ {10000000} \
+   CONFIG.PCW_CLK0_FREQ {100000000} \
    CONFIG.PCW_CLK1_FREQ {10000000} \
    CONFIG.PCW_CLK2_FREQ {10000000} \
    CONFIG.PCW_CLK3_FREQ {10000000} \
@@ -189,8 +414,8 @@ proc create_hier_cell_zynq { parentCell nameHier } {
    CONFIG.PCW_EN_TTC0 {1} \
    CONFIG.PCW_EN_UART1 {1} \
    CONFIG.PCW_EN_USB0 {1} \
-   CONFIG.PCW_FCLK0_PERIPHERAL_DIVISOR0 {10} \
-   CONFIG.PCW_FCLK0_PERIPHERAL_DIVISOR1 {10} \
+   CONFIG.PCW_FCLK0_PERIPHERAL_DIVISOR0 {5} \
+   CONFIG.PCW_FCLK0_PERIPHERAL_DIVISOR1 {2} \
    CONFIG.PCW_FCLK1_PERIPHERAL_DIVISOR0 {1} \
    CONFIG.PCW_FCLK1_PERIPHERAL_DIVISOR1 {1} \
    CONFIG.PCW_FCLK2_PERIPHERAL_DIVISOR0 {1} \
@@ -198,7 +423,7 @@ proc create_hier_cell_zynq { parentCell nameHier } {
    CONFIG.PCW_FCLK3_PERIPHERAL_DIVISOR0 {1} \
    CONFIG.PCW_FCLK3_PERIPHERAL_DIVISOR1 {1} \
    CONFIG.PCW_FCLK_CLK1_BUF {FALSE} \
-   CONFIG.PCW_FPGA0_PERIPHERAL_FREQMHZ {10.000000} \
+   CONFIG.PCW_FPGA0_PERIPHERAL_FREQMHZ {100.000000} \
    CONFIG.PCW_FPGA1_PERIPHERAL_FREQMHZ {100.000000} \
    CONFIG.PCW_FPGA2_PERIPHERAL_FREQMHZ {50} \
    CONFIG.PCW_FPGA_FCLK0_ENABLE {1} \
@@ -631,6 +856,124 @@ proc create_hier_cell_dma { parentCell nameHier } {
   current_bd_instance $oldCurInst
 }
 
+# Hierarchical cell: NoC
+proc create_hier_cell_NoC { parentCell nameHier } {
+
+  variable script_folder
+
+  if { $parentCell eq "" || $nameHier eq "" } {
+     catch {common::send_msg_id "BD_TCL-102" "ERROR" "create_hier_cell_NoC() - Empty argument(s)!"}
+     return
+  }
+
+  # Get object for parentCell
+  set parentObj [get_bd_cells $parentCell]
+  if { $parentObj == "" } {
+     catch {common::send_msg_id "BD_TCL-100" "ERROR" "Unable to find parent cell <$parentCell>!"}
+     return
+  }
+
+  # Make sure parentObj is hier blk
+  set parentType [get_property TYPE $parentObj]
+  if { $parentType ne "hier" } {
+     catch {common::send_msg_id "BD_TCL-101" "ERROR" "Parent <$parentObj> has TYPE = <$parentType>. Expected to be <hier>."}
+     return
+  }
+
+  # Save current instance; Restore later
+  set oldCurInst [current_bd_instance .]
+
+  # Set parent object as current
+  current_bd_instance $parentObj
+
+  # Create cell and set as current instance
+  set hier_obj [create_bd_cell -type hier $nameHier]
+  current_bd_instance $hier_obj
+
+  # Create interface pins
+  create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 L_m
+  create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0 L_s
+
+  # Create pins
+  create_bd_pin -dir I -type clk clock
+  create_bd_pin -dir I -from 7 -to 0 dip_i
+  create_bd_pin -dir I end_i
+  create_bd_pin -dir O -from 7 -to 0 led_o
+  create_bd_pin -dir I -type rst reset
+  create_bd_pin -dir I -from 1 -to 0 send_i
+
+  # Create instance: R01
+  create_hier_cell_R01 $hier_obj R01
+
+  # Create instance: R11
+  create_hier_cell_R11 $hier_obj R11
+
+  # Create instance: inv_clock, and set properties
+  set inv_clock [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 inv_clock ]
+  set_property -dict [ list \
+   CONFIG.C_OPERATION {not} \
+   CONFIG.C_SIZE {1} \
+   CONFIG.LOGO_FILE {data/sym_notgate.png} \
+ ] $inv_clock
+
+  # Create instance: inv_rst, and set properties
+  set inv_rst [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 inv_rst ]
+  set_property -dict [ list \
+   CONFIG.C_OPERATION {not} \
+   CONFIG.C_SIZE {1} \
+   CONFIG.LOGO_FILE {data/sym_notgate.png} \
+ ] $inv_rst
+
+  # Create instance: xlconcat_0, and set properties
+  set xlconcat_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 xlconcat_0 ]
+  set_property -dict [ list \
+   CONFIG.IN0_WIDTH {4} \
+   CONFIG.IN1_WIDTH {4} \
+   CONFIG.NUM_PORTS {2} \
+ ] $xlconcat_0
+
+  # Create instance: xlslice_0, and set properties
+  set xlslice_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_0 ]
+  set_property -dict [ list \
+   CONFIG.DIN_FROM {0} \
+   CONFIG.DIN_TO {0} \
+   CONFIG.DIN_WIDTH {2} \
+   CONFIG.DOUT_WIDTH {1} \
+ ] $xlslice_0
+
+  # Create instance: xlslice_1, and set properties
+  set xlslice_1 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlslice:1.0 xlslice_1 ]
+  set_property -dict [ list \
+   CONFIG.DIN_FROM {1} \
+   CONFIG.DIN_TO {1} \
+   CONFIG.DIN_WIDTH {2} \
+   CONFIG.DOUT_WIDTH {1} \
+ ] $xlslice_1
+
+  # Create interface connections
+  connect_bd_intf_net -intf_net R11_E_m [get_bd_intf_pins R01/E_s] [get_bd_intf_pins R11/W_m]
+  connect_bd_intf_net -intf_net R12_E_m [get_bd_intf_pins R01/E_m] [get_bd_intf_pins R11/W_s]
+  connect_bd_intf_net -intf_net S_AXIS_S2MM_1 [get_bd_intf_pins L_m] [get_bd_intf_pins R01/L_m]
+  connect_bd_intf_net -intf_net dma_M_AXIS_MM2S [get_bd_intf_pins L_s] [get_bd_intf_pins R11/L_s]
+
+  # Create port connections
+  connect_bd_net -net R01_led_01_o [get_bd_pins R01/led_o] [get_bd_pins xlconcat_0/In0]
+  connect_bd_net -net R11_led_o [get_bd_pins R11/led_o] [get_bd_pins xlconcat_0/In1]
+  connect_bd_net -net clock_1 [get_bd_pins clock] [get_bd_pins inv_clock/Op1]
+  connect_bd_net -net dip_i_1 [get_bd_pins dip_i] [get_bd_pins R01/dip_i] [get_bd_pins R11/dip_i]
+  connect_bd_net -net end_i_1 [get_bd_pins end_i] [get_bd_pins R01/end_i] [get_bd_pins R11/end_i]
+  connect_bd_net -net reset_1 [get_bd_pins reset] [get_bd_pins inv_rst/Op1]
+  connect_bd_net -net rst_ps7_0_100M_peripheral_aresetn [get_bd_pins R01/reset] [get_bd_pins R11/reset] [get_bd_pins inv_rst/Res]
+  connect_bd_net -net send_i_1 [get_bd_pins send_i] [get_bd_pins xlslice_0/Din] [get_bd_pins xlslice_1/Din]
+  connect_bd_net -net xlconcat_0_dout [get_bd_pins led_o] [get_bd_pins xlconcat_0/dout]
+  connect_bd_net -net xlslice_0_Dout [get_bd_pins R11/send_i] [get_bd_pins xlslice_0/Dout]
+  connect_bd_net -net xlslice_1_Dout [get_bd_pins R01/send_i] [get_bd_pins xlslice_1/Dout]
+  connect_bd_net -net zynq_FCLK_CLK2 [get_bd_pins R01/clock] [get_bd_pins R11/clock] [get_bd_pins inv_clock/Res]
+
+  # Restore current instance
+  current_bd_instance $oldCurInst
+}
+
 
 # Procedure to create entire design; Provide argument to make
 # procedure reusable. If parentCell is "", will use root.
@@ -670,11 +1013,11 @@ proc create_root_design { parentCell } {
   # Create ports
   set dip_i [ create_bd_port -dir I -from 7 -to 0 dip_i ]
   set end_i [ create_bd_port -dir I end_i ]
-  set led_o [ create_bd_port -dir O -from 3 -to 0 led_o ]
-  set send_i [ create_bd_port -dir I -from 3 -to 0 send_i ]
+  set led_o [ create_bd_port -dir O -from 7 -to 0 led_o ]
+  set send_i [ create_bd_port -dir I -from 1 -to 0 send_i ]
 
-  # Create instance: Hermes, and set properties
-  set Hermes [ create_bd_cell -type ip -vlnv user.org:user:Router_Board:1.1 Hermes ]
+  # Create instance: NoC
+  create_hier_cell_NoC [current_bd_instance .] NoC
 
   # Create instance: dma
   create_hier_cell_dma [current_bd_instance .] dma
@@ -683,21 +1026,21 @@ proc create_root_design { parentCell } {
   create_hier_cell_zynq [current_bd_instance .] zynq
 
   # Create interface connections
-  connect_bd_intf_net -intf_net Router_Board_0_m_L [get_bd_intf_pins Hermes/m_L] [get_bd_intf_pins dma/S_AXIS_S2MM]
-  connect_bd_intf_net -intf_net axi_dma_0_M_AXIS_MM2S [get_bd_intf_pins Hermes/s_L] [get_bd_intf_pins dma/M_AXIS_MM2S]
+  connect_bd_intf_net -intf_net S_AXIS_S2MM_1 [get_bd_intf_pins NoC/L_m] [get_bd_intf_pins dma/S_AXIS_S2MM]
   connect_bd_intf_net -intf_net axi_smc_M00_AXI [get_bd_intf_pins dma/M00_AXI] [get_bd_intf_pins zynq/S_AXI_HP0]
+  connect_bd_intf_net -intf_net dma_M_AXIS_MM2S [get_bd_intf_pins NoC/L_s] [get_bd_intf_pins dma/M_AXIS_MM2S]
   connect_bd_intf_net -intf_net processing_system7_0_DDR [get_bd_intf_ports DDR] [get_bd_intf_pins zynq/DDR]
   connect_bd_intf_net -intf_net processing_system7_0_FIXED_IO [get_bd_intf_ports FIXED_IO] [get_bd_intf_pins zynq/FIXED_IO]
   connect_bd_intf_net -intf_net ps7_0_axi_periph_M00_AXI [get_bd_intf_pins dma/S_AXI_LITE] [get_bd_intf_pins zynq/M00_AXI]
 
   # Create port connections
-  connect_bd_net -net Router_Board_0_led_o [get_bd_ports led_o] [get_bd_pins Hermes/led_o]
-  connect_bd_net -net dip_i_0_1 [get_bd_ports dip_i] [get_bd_pins Hermes/dip_i]
+  connect_bd_net -net NoC_dout_0 [get_bd_ports led_o] [get_bd_pins NoC/led_o]
+  connect_bd_net -net dip_i_1 [get_bd_ports dip_i] [get_bd_pins NoC/dip_i]
   connect_bd_net -net dma_dout [get_bd_pins dma/irq] [get_bd_pins zynq/IRQ_F2P]
-  connect_bd_net -net end_i_0_1 [get_bd_ports end_i] [get_bd_pins Hermes/end_i]
-  connect_bd_net -net rst_ps7_0_100M_peripheral_aresetn [get_bd_pins Hermes/reset] [get_bd_pins dma/aresetn] [get_bd_pins zynq/S00_ARESETN]
-  connect_bd_net -net send_i_0_1 [get_bd_ports send_i] [get_bd_pins Hermes/send_i]
-  connect_bd_net -net zynq_FCLK_CLK2 [get_bd_pins Hermes/clock] [get_bd_pins dma/m_axi_s2mm_aclk] [get_bd_pins zynq/FCLK_CLK0]
+  connect_bd_net -net end_i_1 [get_bd_ports end_i] [get_bd_pins NoC/end_i]
+  connect_bd_net -net rst_ps7_0_100M_peripheral_aresetn [get_bd_pins NoC/reset] [get_bd_pins dma/aresetn] [get_bd_pins zynq/S00_ARESETN]
+  connect_bd_net -net send_i_1 [get_bd_ports send_i] [get_bd_pins NoC/send_i]
+  connect_bd_net -net zynq_FCLK_CLK2 [get_bd_pins NoC/clock] [get_bd_pins dma/m_axi_s2mm_aclk] [get_bd_pins zynq/FCLK_CLK0]
 
   # Create address segments
   create_bd_addr_seg -range 0x20000000 -offset 0x00000000 [get_bd_addr_spaces dma/axi_dma_0/Data_MM2S] [get_bd_addr_segs zynq/processing_system7_0/S_AXI_HP0/HP0_DDR_LOWOCM] SEG_processing_system7_0_HP0_DDR_LOWOCM
@@ -718,8 +1061,11 @@ proc available_tcl_procs { } {
    puts "##################################################################"
    puts "# Available Tcl procedures to recreate hierarchical blocks:"
    puts "#"
+   puts "#    create_hier_cell_NoC parentCell nameHier"
    puts "#    create_hier_cell_dma parentCell nameHier"
    puts "#    create_hier_cell_zynq parentCell nameHier"
+   puts "#    create_hier_cell_R01 parentCell nameHier"
+   puts "#    create_hier_cell_R11 parentCell nameHier"
    puts "#    create_root_design"
    puts "#"
    puts "#"

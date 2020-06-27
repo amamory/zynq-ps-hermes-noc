@@ -1,6 +1,3 @@
-[submodule "Router_Board"]
-	path = hw/ips/Router_Board
-	url = https://github.com/amamory/hermes-noc-tester-vivado-ip.git
 [submodule "hw/ips/m-axis-dip-ip"]
 	path = hw/ips/m-axis-dip-ip
 	url = https://github.com/amamory/m-axis-dip-ip.git
@@ -10,3 +7,7 @@
 [submodule "hw/ips/hermes-router-axis-ip"]
 	path = hw/ips/hermes-router-axis-ip
 	url = https://github.com/amamory/hermes-router-axis-ip.git
+[submodule "hw/ips/axis_s_const_ip"]
+	path = hw/ips/axis_s_const_ip
+	url = https://github.com/amamory/axis_s_const_ip.git
+	branch = vhd

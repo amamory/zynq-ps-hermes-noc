@@ -145,32 +145,36 @@ if {[string equal [get_filesets -quiet sim_1] ""]} {
 }
 
 # Set 'sim_1' fileset object
-set obj [get_filesets sim_1]
-set_property -name "sim_mode" -value "post-implementation" -objects $obj
-#TODO assuming the testbench name is tb. is it possible to find it out automatically ?
-set_property -name "top" -value "tb" -objects $obj
-set_property -name "top_lib" -value "xil_defaultlib" -objects $obj
 # Import testbenches, waveform files, etc if they exist
+set obj [get_filesets sim_1]
 set sim_files [glob -nocomplain -directory $origin_dir/hw/hdl/sim *{*.vhd,*.v,*.sv}*]
 
-foreach sim_file $sim_files {
-  set file "[file normalize "$sim_file"]"
-  add_files -quiet -fileset sim_1 $file
-  set file_obj [get_files -of_objects [get_filesets sim_1] $file]
-  set extension [string tolower [file extension $file]]
-  if {$extension == ".vhd"} {
-    set hdl_type "VHDL"
-  } elseif {$extension == ".v"} {
-    set hdl_type "Verilog"
-  } elseif {$extension == ".sv"} {
-    set hdl_type "SystemVerilog"
-  } else {
-    puts "ERROR: HDL extension $extension is not supported"
-    return
+# if there is a testbench, then add few more properties 
+if {[llength $sim_files] > 0} {
+  set_property -name "sim_mode" -value "post-implementation" -objects $obj
+  #TODO assuming the testbench name is tb. is it possible to find it out automatically ?
+  set_property -name "top" -value "tb" -objects $obj
+  set_property -name "top_lib" -value "xil_defaultlib" -objects $obj
+
+  foreach sim_file $sim_files {
+    set file "[file normalize "$sim_file"]"
+    add_files -quiet -fileset sim_1 $file
+    set file_obj [get_files -of_objects [get_filesets sim_1] $file]
+    set extension [string tolower [file extension $file]]
+    if {$extension == ".vhd"} {
+      set hdl_type "VHDL"
+    } elseif {$extension == ".v"} {
+      set hdl_type "Verilog"
+    } elseif {$extension == ".sv"} {
+      set hdl_type "SystemVerilog"
+    } else {
+      puts "ERROR: HDL extension $extension is not supported"
+      return
+    }
+    set_property -name "file_type" -value $hdl_type -objects $file_obj
+    #TODO can i replace the lib by work ?
+    set_property -name "library" -value "work" -objects $file_obj
   }
-  set_property -name "file_type" -value $hdl_type -objects $file_obj
-  #TODO can i replace the lib by work ?
-  set_property -name "library" -value "work" -objects $file_obj
 }
 
 # waveform files are simply added to the project. no property is set
