@@ -263,6 +263,7 @@ int main(void)
 		xil_printf("Device configured as SG mode \r\n");
 		return XST_FAILURE;
 	}
+	xil_printf("DMA controller configured !\r\n");
 
 	/* Set up Interrupt system  */
 	Status = SetupIntrSystem(&Intc, &AxiDma, TX_INTR_ID, RX_INTR_ID);
@@ -271,6 +272,7 @@ int main(void)
 		xil_printf("Failed intr setup\r\n");
 		return XST_FAILURE;
 	}
+	xil_printf("Interrupt controller configured !\r\n");
 
 	/* Disable all interrupts before setup */
 
@@ -303,6 +305,8 @@ int main(void)
 	Xil_DCacheFlushRange((UINTPTR)TxBufferPtr, MAX_PKT_LEN);
 	Xil_DCacheFlushRange((UINTPTR)RxBufferPtr, MAX_PKT_LEN);
 
+	xil_printf("sending data ...\r\n");
+
 	/* Send a packet */
 	for(Index = 0; Index < Tries; Index ++) {
 
@@ -324,7 +328,7 @@ int main(void)
 			return XST_FAILURE;
 		}
 
-
+		xil_printf("waiting interrupt signal ...\r\n");
 		/*
 		 * Wait for both TX and RX done
 		 */
@@ -349,6 +353,8 @@ int main(void)
 			xil_printf("Data check failed\r\n");
 			goto Done;
 		}
+		xil_printf("Packet %d sent !\r\n", Index);
+
 	}
 
 
