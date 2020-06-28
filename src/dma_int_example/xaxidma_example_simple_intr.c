@@ -344,7 +344,7 @@ int main(void)
 		/*
 		 * Wait for both TX and RX done
 		 */
-		time_cont = 0;
+		time_count = 0;
 		while ((!TxDone || !RxDone) && !Error) {
 				/* NOP */
 			time_count ++;

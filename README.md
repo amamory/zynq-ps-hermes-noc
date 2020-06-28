@@ -36,6 +36,15 @@ Follow these instructions to recreate the Vivado and SDK projects:
 
 These scripts will recreate the entire Vivado project, compile the design, generate the bitstream, export the hardware to SDK, create the SDK projects, import the source files, build all projects, and finally download both the bitstream and the elf application. Hopefully, all these steps will be executed automatically.
 
+# How to update the submodules
+
+This design uses custom IPs that are git submodules. These IPs might get updated over time. If you wish to get the latest IP version, then execute these commands:
+
+```
+git submodule update --init --recursive
+git submodule foreach git pull origin master
+```
+
 # How to update the scripts
 
 These scripts come from a template repository and they get updated and improved over time. If you wish to get the latest script version, then follow these steps:
