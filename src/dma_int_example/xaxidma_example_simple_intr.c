@@ -141,7 +141,8 @@
 /*
  * Buffer and Buffer Descriptor related constant definition
  */
-#define MAX_PKT_LEN		0x100
+#define MAX_PKT_LEN		0x20
+#define MAX_PKT_BYTES	MAX_PKT_LEN * sizeof(u32)
 
 #define NUMBER_OF_TRANSFERS	10
 
@@ -167,7 +168,7 @@ extern void xil_printf(const char *format, ...);
 static void Uart550_Setup(void);
 #endif
 
-static int CheckData(int Length, u8 StartValue);
+static int CheckData(int Length, u32 StartValue);
 static void TxIntrHandler(void *Callback);
 static void RxIntrHandler(void *Callback);
 
@@ -191,6 +192,7 @@ static XAxiDma AxiDma;		/* Instance of the XAxiDma */
 
 static INTC Intc;	/* Instance of the Interrupt Controller */
 
+int time_count;
 /*
  * Flags interrupt handlers use to notify the application context the events.
  */
@@ -229,12 +231,12 @@ int main(void)
 	XAxiDma_Config *Config;
 	int Tries = NUMBER_OF_TRANSFERS;
 	int Index;
-	u8 *TxBufferPtr;
-	u8 *RxBufferPtr;
-	u8 Value;
+	u32 *TxBufferPtr;
+	u32 *RxBufferPtr;
+	u32 Value;
 
-	TxBufferPtr = (u8 *)TX_BUFFER_BASE ;
-	RxBufferPtr = (u8 *)RX_BUFFER_BASE;
+	TxBufferPtr = (u32 *)TX_BUFFER_BASE ;
+	RxBufferPtr = (u32 *)RX_BUFFER_BASE;
 	/* Initial setup for Uart16550 */
 #ifdef XPAR_UARTNS550_0_BASEADDR
 
@@ -290,10 +292,20 @@ int main(void)
 	XAxiDma_IntrEnable(&AxiDma, XAXIDMA_IRQ_ALL_MASK,
 							XAXIDMA_DEVICE_TO_DMA);
 
+	// running DMA self test
+	Status = XAxiDma_Selftest(&AxiDma);
+	if (Status != XST_SUCCESS) {
+		xil_printf("Self-test failed !\r\n");
+		return XST_FAILURE;
+	}
+	xil_printf("Self-test passed !!!\r\n");
 
+	// preparing data to be sent
+	TxBufferPtr[0] = 0x0001; // header
+	TxBufferPtr[1] = MAX_PKT_LEN-2; // size
 	Value = TEST_START_VALUE;
-
-	for(Index = 0; Index < MAX_PKT_LEN; Index ++) {
+	// payload
+	for(Index = 2; Index < MAX_PKT_LEN; Index ++) {
 			TxBufferPtr[Index] = Value;
 
 			Value = (Value + 1) & 0xFF;
@@ -302,8 +314,8 @@ int main(void)
 	/* Flush the buffers before the DMA transfer, in case the Data Cache
 	 * is enabled
 	 */
-	Xil_DCacheFlushRange((UINTPTR)TxBufferPtr, MAX_PKT_LEN);
-	Xil_DCacheFlushRange((UINTPTR)RxBufferPtr, MAX_PKT_LEN);
+	Xil_DCacheFlushRange((UINTPTR)TxBufferPtr, MAX_PKT_BYTES);
+	Xil_DCacheFlushRange((UINTPTR)RxBufferPtr, MAX_PKT_BYTES);
 
 	xil_printf("sending data ...\r\n");
 
@@ -315,14 +327,14 @@ int main(void)
 		RxDone = 0;
 		Error = 0;
 		Status = XAxiDma_SimpleTransfer(&AxiDma,(UINTPTR) RxBufferPtr,
-					MAX_PKT_LEN, XAXIDMA_DEVICE_TO_DMA);
+				MAX_PKT_BYTES, XAXIDMA_DEVICE_TO_DMA);
 
 		if (Status != XST_SUCCESS) {
 			return XST_FAILURE;
 		}
 
 		Status = XAxiDma_SimpleTransfer(&AxiDma,(UINTPTR) TxBufferPtr,
-					MAX_PKT_LEN, XAXIDMA_DMA_TO_DEVICE);
+				MAX_PKT_BYTES, XAXIDMA_DMA_TO_DEVICE);
 
 		if (Status != XST_SUCCESS) {
 			return XST_FAILURE;
@@ -332,8 +344,10 @@ int main(void)
 		/*
 		 * Wait for both TX and RX done
 		 */
+		time_cont = 0;
 		while ((!TxDone || !RxDone) && !Error) {
 				/* NOP */
+			time_count ++;
 		}
 
 		if (Error) {
@@ -412,13 +426,13 @@ static void Uart550_Setup(void)
 * @note		None.
 *
 ******************************************************************************/
-static int CheckData(int Length, u8 StartValue)
+static int CheckData(int Length, u32 StartValue)
 {
-	u8 *RxPacket;
+	u32 *RxPacket;
 	int Index = 0;
-	u8 Value;
+	u32 Value;
 
-	RxPacket = (u8 *) RX_BUFFER_BASE;
+	RxPacket = (u32 *) RX_BUFFER_BASE;
 	Value = StartValue;
 
 	/* Invalidate the DestBuffer before receiving the data, in case the
@@ -426,7 +440,13 @@ static int CheckData(int Length, u8 StartValue)
 	 */
 	Xil_DCacheInvalidateRange((UINTPTR)RxPacket, Length);
 
-	for(Index = 0; Index < Length; Index++) {
+	if (RxPacket[0] != 1) {
+		xil_printf("Header error: %x\r\n", RxPacket[0]);
+	}
+	if (RxPacket[1] != Length-2) {
+		xil_printf("Size error: %x\r\n", RxPacket[0]);
+	}
+	for(Index = 2; Index < Length; Index++) {
 		if (RxPacket[Index] != Value) {
 			xil_printf("Data error %d: %x/%x\r\n",
 			    Index, RxPacket[Index], Value);
@@ -462,13 +482,13 @@ static void TxIntrHandler(void *Callback)
 	int TimeOut;
 	XAxiDma *AxiDmaInst = (XAxiDma *)Callback;
 
+	xil_printf("int1 tx activated after %d ticks!\n", time_count);
 	/* Read pending interrupts */
 	IrqStatus = XAxiDma_IntrGetIrq(AxiDmaInst, XAXIDMA_DMA_TO_DEVICE);
 
 	/* Acknowledge pending interrupts */
-
-
 	XAxiDma_IntrAckIrq(AxiDmaInst, IrqStatus, XAXIDMA_DMA_TO_DEVICE);
+	xil_printf("int2 tx activated after %d ticks!\n", time_count);
 
 	/*
 	 * If no interrupt is asserted, we do not do anything
@@ -484,7 +504,7 @@ static void TxIntrHandler(void *Callback)
 	 * processing.
 	 */
 	if ((IrqStatus & XAXIDMA_IRQ_ERROR_MASK)) {
-
+		xil_printf("int tx error!\n");
 		Error = 1;
 
 		/*
@@ -509,7 +529,7 @@ static void TxIntrHandler(void *Callback)
 	 * If Completion interrupt is asserted, then set the TxDone flag
 	 */
 	if ((IrqStatus & XAXIDMA_IRQ_IOC_MASK)) {
-
+		xil_printf("int tx ok!\n");
 		TxDone = 1;
 	}
 }
@@ -541,6 +561,7 @@ static void RxIntrHandler(void *Callback)
 
 	/* Acknowledge pending interrupts */
 	XAxiDma_IntrAckIrq(AxiDmaInst, IrqStatus, XAXIDMA_DEVICE_TO_DMA);
+	xil_printf("int rx activated after %d ticks!\n", time_count);
 
 	/*
 	 * If no interrupt is asserted, we do not do anything
@@ -555,7 +576,7 @@ static void RxIntrHandler(void *Callback)
 	 * processing.
 	 */
 	if ((IrqStatus & XAXIDMA_IRQ_ERROR_MASK)) {
-
+		xil_printf("int rx error!\n");
 		Error = 1;
 
 		/* Reset could fail and hang
@@ -580,7 +601,7 @@ static void RxIntrHandler(void *Callback)
 	 * If completion interrupt is asserted, then set RxDone flag
 	 */
 	if ((IrqStatus & XAXIDMA_IRQ_IOC_MASK)) {
-
+		xil_printf("int rx ok!\n");
 		RxDone = 1;
 	}
 }

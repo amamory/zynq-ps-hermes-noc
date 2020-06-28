@@ -101,6 +101,15 @@ int main(){
 	XAxiDma_IntrEnable(&myDma, XAXIDMA_IRQ_IOC_MASK, XAXIDMA_DMA_TO_DEVICE);
 	XAxiDma_IntrEnable(&myDma, XAXIDMA_IRQ_IOC_MASK, XAXIDMA_DEVICE_TO_DMA);
 
+	// =======================================
+	// Running DMA self test
+	// =======================================
+	status = XAxiDma_Selftest(&myDma);
+	if (status != XST_SUCCESS) {
+		xil_printf("Self-test failed !\r\n");
+		return XST_FAILURE;
+	}
+	xil_printf("Self-test passed !!!\r\n");
 
 	// =======================================
 	// Send data
@@ -127,9 +136,15 @@ int main(){
 		return XST_FAILURE;
 	}
 
-	// wait the interrupt from the loopback
-	while(!RxDone || !TxDone){
+	// wait the interrupt from the loopback or the timeout
+	int cont = 2000;
+	while(!((RxDone && TxDone) || (cont <= 0 ))){
 		xil_printf("I am working!\n");
+		cont --;
+	}
+	if (!cont){
+		xil_printf("DMA timeout!\n");
+		return XST_FAILURE;
 	}
 
 
@@ -165,6 +180,7 @@ static void dmaTX_ISR(void *CallBackRef){
 	//XScuGic_Disable(&IntcInstance, TX_INTR_ID);
 	XAxiDma_IntrDisable(AxiDmaInst, XAXIDMA_IRQ_IOC_MASK, XAXIDMA_DMA_TO_DEVICE);
 	XAxiDma_IntrAckIrq(AxiDmaInst,  XAXIDMA_IRQ_IOC_MASK, XAXIDMA_DMA_TO_DEVICE);
+	xil_printf("int tx activated!\n");
 
 	// avoid overwriting any previous unfinished dma transfer
 	status = checkIdle(XPAR_AXIDMA_0_BASEADDR,0x4);
@@ -185,6 +201,7 @@ static void dmaRX_ISR(void *CallBackRef){
 	// disable the corresponding interrupt
 	XAxiDma_IntrDisable(AxiDmaInst, XAXIDMA_IRQ_IOC_MASK, XAXIDMA_DEVICE_TO_DMA);
 	XAxiDma_IntrAckIrq(AxiDmaInst,  XAXIDMA_IRQ_IOC_MASK, XAXIDMA_DEVICE_TO_DMA);
+	xil_printf("int rx activated!\n");
 
 	// do stuff - compare to the sent packet
 	xil_printf("PS is receiving from the NoC!\n");
