@@ -192,7 +192,6 @@ static XAxiDma AxiDma;		/* Instance of the XAxiDma */
 
 static INTC Intc;	/* Instance of the Interrupt Controller */
 
-int time_count;
 /*
  * Flags interrupt handlers use to notify the application context the events.
  */
@@ -292,16 +291,9 @@ int main(void)
 	XAxiDma_IntrEnable(&AxiDma, XAXIDMA_IRQ_ALL_MASK,
 							XAXIDMA_DEVICE_TO_DMA);
 
-	// running DMA self test
-	Status = XAxiDma_Selftest(&AxiDma);
-	if (Status != XST_SUCCESS) {
-		xil_printf("Self-test failed !\r\n");
-		return XST_FAILURE;
-	}
-	xil_printf("Self-test passed !!!\r\n");
 
 	// preparing data to be sent
-	TxBufferPtr[0] = 0x0001; // header
+	TxBufferPtr[0] = 0x00000001; // header
 	TxBufferPtr[1] = MAX_PKT_LEN-2; // size
 	Value = TEST_START_VALUE;
 	// payload
@@ -321,18 +313,18 @@ int main(void)
 
 	/* Send a packet */
 	for(Index = 0; Index < Tries; Index ++) {
-
 		/* Initialize flags before start transfer test  */
 		TxDone = 0;
 		RxDone = 0;
 		Error = 0;
+		xil_printf("DMA rx config ...\r\n");
 		Status = XAxiDma_SimpleTransfer(&AxiDma,(UINTPTR) RxBufferPtr,
 				MAX_PKT_BYTES, XAXIDMA_DEVICE_TO_DMA);
 
 		if (Status != XST_SUCCESS) {
 			return XST_FAILURE;
 		}
-
+		xil_printf("DMA tx config ...\r\n");
 		Status = XAxiDma_SimpleTransfer(&AxiDma,(UINTPTR) TxBufferPtr,
 				MAX_PKT_BYTES, XAXIDMA_DMA_TO_DEVICE);
 
@@ -344,10 +336,8 @@ int main(void)
 		/*
 		 * Wait for both TX and RX done
 		 */
-		time_count = 0;
 		while ((!TxDone || !RxDone) && !Error) {
 				/* NOP */
-			time_count ++;
 		}
 
 		if (Error) {
@@ -367,7 +357,7 @@ int main(void)
 			xil_printf("Data check failed\r\n");
 			goto Done;
 		}
-		xil_printf("Packet %d sent !\r\n", Index);
+		xil_printf("Packet %d sent ! TxDone %d, RxDone %d, Error %d\r\n", Index, TxDone, RxDone, Error);
 
 	}
 
@@ -482,19 +472,18 @@ static void TxIntrHandler(void *Callback)
 	int TimeOut;
 	XAxiDma *AxiDmaInst = (XAxiDma *)Callback;
 
-	xil_printf("int1 tx activated after %d ticks!\n", time_count);
 	/* Read pending interrupts */
 	IrqStatus = XAxiDma_IntrGetIrq(AxiDmaInst, XAXIDMA_DMA_TO_DEVICE);
 
 	/* Acknowledge pending interrupts */
 	XAxiDma_IntrAckIrq(AxiDmaInst, IrqStatus, XAXIDMA_DMA_TO_DEVICE);
-	xil_printf("int2 tx activated after %d ticks!\n", time_count);
+	xil_printf("int2 tx activated!\n");
 
 	/*
 	 * If no interrupt is asserted, we do not do anything
 	 */
 	if (!(IrqStatus & XAXIDMA_IRQ_ALL_MASK)) {
-
+		xil_printf("int tx all!\n");
 		return;
 	}
 
@@ -561,12 +550,13 @@ static void RxIntrHandler(void *Callback)
 
 	/* Acknowledge pending interrupts */
 	XAxiDma_IntrAckIrq(AxiDmaInst, IrqStatus, XAXIDMA_DEVICE_TO_DMA);
-	xil_printf("int rx activated after %d ticks!\n", time_count);
+	xil_printf("int rx activated!\n");
 
 	/*
 	 * If no interrupt is asserted, we do not do anything
 	 */
 	if (!(IrqStatus & XAXIDMA_IRQ_ALL_MASK)) {
+		xil_printf("int rx all!\n");
 		return;
 	}
 
