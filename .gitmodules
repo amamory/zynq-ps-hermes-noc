@@ -4,7 +4,6 @@
 [submodule "hw/ips/axis_m_const_ip"]
 	path = hw/ips/axis_m_const_ip
 	url = https://github.com/amamory/axis_m_const_ip.git
-	branch = vhd
 [submodule "hw/ips/axis_m_dip_ip"]
 	path = hw/ips/axis_m_dip_ip
 	url = https://github.com/amamory/axis_m_dip_ip.git
