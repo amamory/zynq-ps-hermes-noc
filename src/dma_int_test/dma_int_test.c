@@ -104,13 +104,14 @@ int main(){
 	// =======================================
 	// Running DMA self test
 	// =======================================
+	/*
 	status = XAxiDma_Selftest(&myDma);
 	if (status != XST_SUCCESS) {
 		xil_printf("Self-test failed !\r\n");
 		return XST_FAILURE;
 	}
 	xil_printf("Self-test passed !!!\r\n");
-
+	 */
 	// =======================================
 	// Send data
 	// =======================================
@@ -150,7 +151,7 @@ int main(){
 
 	xil_printf("Checking data ... ");
 	Xil_DCacheInvalidateRange((UINTPTR)hermes_pkg_in, PACKET_SIZE*sizeof(int));
-	if (memcmp(hermes_pkg,hermes_pkg_in,PACKET_SIZE*sizeof(int))){
+	if (memcmp(hermes_pkg,hermes_pkg_in,PACKET_SIZE*sizeof(int))==0){
 		xil_printf("packets matched !!!\n");
 	}else{
 		xil_printf("packets do not matched !!!\n");

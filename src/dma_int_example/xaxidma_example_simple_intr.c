@@ -477,13 +477,13 @@ static void TxIntrHandler(void *Callback)
 
 	/* Acknowledge pending interrupts */
 	XAxiDma_IntrAckIrq(AxiDmaInst, IrqStatus, XAXIDMA_DMA_TO_DEVICE);
-	xil_printf("int2 tx activated!\n");
+	//xil_printf("int2 tx activated!\n");
 
 	/*
 	 * If no interrupt is asserted, we do not do anything
 	 */
 	if (!(IrqStatus & XAXIDMA_IRQ_ALL_MASK)) {
-		xil_printf("int tx all!\n");
+		//xil_printf("int tx all!\n");
 		return;
 	}
 
@@ -493,7 +493,7 @@ static void TxIntrHandler(void *Callback)
 	 * processing.
 	 */
 	if ((IrqStatus & XAXIDMA_IRQ_ERROR_MASK)) {
-		xil_printf("int tx error!\n");
+		//xil_printf("int tx error!\n");
 		Error = 1;
 
 		/*
@@ -518,7 +518,7 @@ static void TxIntrHandler(void *Callback)
 	 * If Completion interrupt is asserted, then set the TxDone flag
 	 */
 	if ((IrqStatus & XAXIDMA_IRQ_IOC_MASK)) {
-		xil_printf("int tx ok!\n");
+		//xil_printf("int tx ok!\n");
 		TxDone = 1;
 	}
 }
@@ -550,13 +550,13 @@ static void RxIntrHandler(void *Callback)
 
 	/* Acknowledge pending interrupts */
 	XAxiDma_IntrAckIrq(AxiDmaInst, IrqStatus, XAXIDMA_DEVICE_TO_DMA);
-	xil_printf("int rx activated!\n");
+	//xil_printf("int rx activated!\n");
 
 	/*
 	 * If no interrupt is asserted, we do not do anything
 	 */
 	if (!(IrqStatus & XAXIDMA_IRQ_ALL_MASK)) {
-		xil_printf("int rx all!\n");
+		//xil_printf("int rx all!\n");
 		return;
 	}
 
@@ -566,7 +566,7 @@ static void RxIntrHandler(void *Callback)
 	 * processing.
 	 */
 	if ((IrqStatus & XAXIDMA_IRQ_ERROR_MASK)) {
-		xil_printf("int rx error!\n");
+		//xil_printf("int rx error!\n");
 		Error = 1;
 
 		/* Reset could fail and hang
@@ -591,7 +591,7 @@ static void RxIntrHandler(void *Callback)
 	 * If completion interrupt is asserted, then set RxDone flag
 	 */
 	if ((IrqStatus & XAXIDMA_IRQ_IOC_MASK)) {
-		xil_printf("int rx ok!\n");
+		//xil_printf("int rx ok!\n");
 		RxDone = 1;
 	}
 }
