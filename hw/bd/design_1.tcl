@@ -44,6 +44,7 @@ set bCheckIPsPassed 1
 set bCheckIPs 1
 if { $bCheckIPs == 1 } {
    set list_check_ips "\ 
+xilinx.com:ip:system_ila:1.1\
 xilinx.com:ip:util_vector_logic:2.0\
 xilinx.com:ip:xlconcat:2.1\
 xilinx.com:ip:xlslice:1.0\
@@ -959,9 +960,18 @@ proc create_hier_cell_NoC { parentCell nameHier } {
   connect_bd_intf_net -intf_net Conn1 [get_bd_intf_pins N_m] [get_bd_intf_pins R11/N_m]
   connect_bd_intf_net -intf_net R11_E_m [get_bd_intf_pins R01/E_s] [get_bd_intf_pins R11/W_m]
   connect_bd_intf_net -intf_net [get_bd_intf_nets R11_E_m] [get_bd_intf_pins W_m] [get_bd_intf_pins R01/E_s]
+  set_property -dict [ list \
+HDL_ATTRIBUTE.DEBUG {true} \
+ ] [get_bd_intf_nets R11_E_m]
   connect_bd_intf_net -intf_net R12_E_m [get_bd_intf_pins R01/E_m] [get_bd_intf_pins R11/W_s]
   connect_bd_intf_net -intf_net S_AXIS_S2MM_1 [get_bd_intf_pins L_m] [get_bd_intf_pins R01/L_m]
+  set_property -dict [ list \
+HDL_ATTRIBUTE.DEBUG {true} \
+ ] [get_bd_intf_nets S_AXIS_S2MM_1]
   connect_bd_intf_net -intf_net dma_M_AXIS_MM2S [get_bd_intf_pins L_s] [get_bd_intf_pins R11/L_s]
+  set_property -dict [ list \
+HDL_ATTRIBUTE.DEBUG {true} \
+ ] [get_bd_intf_nets dma_M_AXIS_MM2S]
 
   # Create port connections
   connect_bd_net -net R01_led_01_o [get_bd_pins R01/led_o] [get_bd_pins xlconcat_0/In0]
@@ -1029,13 +1039,37 @@ proc create_root_design { parentCell } {
   # Create instance: dma
   create_hier_cell_dma [current_bd_instance .] dma
 
+  # Create instance: system_ila_0, and set properties
+  set system_ila_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:system_ila:1.1 system_ila_0 ]
+  set_property -dict [ list \
+   CONFIG.C_BRAM_CNT {1} \
+   CONFIG.C_MON_TYPE {MIX} \
+   CONFIG.C_NUM_MONITOR_SLOTS {3} \
+   CONFIG.C_NUM_OF_PROBES {1} \
+   CONFIG.C_PROBE0_WIDTH {2} \
+   CONFIG.C_PROBE1_TYPE {0} \
+   CONFIG.C_PROBE1_WIDTH {1} \
+   CONFIG.C_PROBE_WIDTH_PROPAGATION {MANUAL} \
+   CONFIG.C_SLOT {0} \
+   CONFIG.C_SLOT_0_APC_EN {0} \
+   CONFIG.C_SLOT_0_AXI_DATA_SEL {1} \
+   CONFIG.C_SLOT_0_AXI_TRIG_SEL {1} \
+   CONFIG.C_SLOT_0_INTF_TYPE {xilinx.com:interface:axis_rtl:1.0} \
+   CONFIG.C_SLOT_1_INTF_TYPE {xilinx.com:interface:axis_rtl:1.0} \
+   CONFIG.C_SLOT_1_TYPE {0} \
+   CONFIG.C_SLOT_2_INTF_TYPE {xilinx.com:interface:axis_rtl:1.0} \
+ ] $system_ila_0
+
   # Create instance: zynq
   create_hier_cell_zynq [current_bd_instance .] zynq
 
   # Create interface connections
+connect_bd_intf_net -intf_net Conn1 [get_bd_intf_pins NoC/W_m] [get_bd_intf_pins system_ila_0/SLOT_2_AXIS]
   connect_bd_intf_net -intf_net S_AXIS_S2MM_1 [get_bd_intf_pins NoC/L_m] [get_bd_intf_pins dma/S_AXIS_S2MM]
+connect_bd_intf_net -intf_net [get_bd_intf_nets S_AXIS_S2MM_1] [get_bd_intf_pins NoC/L_m] [get_bd_intf_pins system_ila_0/SLOT_1_AXIS]
   connect_bd_intf_net -intf_net axi_smc_M00_AXI [get_bd_intf_pins dma/M00_AXI] [get_bd_intf_pins zynq/S_AXI_HP0]
   connect_bd_intf_net -intf_net dma_M_AXIS_MM2S [get_bd_intf_pins NoC/L_s] [get_bd_intf_pins dma/M_AXIS_MM2S]
+connect_bd_intf_net -intf_net [get_bd_intf_nets dma_M_AXIS_MM2S] [get_bd_intf_pins NoC/L_s] [get_bd_intf_pins system_ila_0/SLOT_0_AXIS]
   connect_bd_intf_net -intf_net processing_system7_0_DDR [get_bd_intf_ports DDR] [get_bd_intf_pins zynq/DDR]
   connect_bd_intf_net -intf_net processing_system7_0_FIXED_IO [get_bd_intf_ports FIXED_IO] [get_bd_intf_pins zynq/FIXED_IO]
   connect_bd_intf_net -intf_net ps7_0_axi_periph_M00_AXI [get_bd_intf_pins dma/S_AXI_LITE] [get_bd_intf_pins zynq/M00_AXI]
@@ -1043,11 +1077,11 @@ proc create_root_design { parentCell } {
   # Create port connections
   connect_bd_net -net NoC_dout_0 [get_bd_ports led_o] [get_bd_pins NoC/led_o]
   connect_bd_net -net dip_i_1 [get_bd_ports dip_i] [get_bd_pins NoC/dip_i]
-  connect_bd_net -net dma_dout [get_bd_pins dma/irq] [get_bd_pins zynq/IRQ_F2P]
+  connect_bd_net -net dma_dout [get_bd_pins dma/irq] [get_bd_pins system_ila_0/probe0] [get_bd_pins zynq/IRQ_F2P]
   connect_bd_net -net end_i_1 [get_bd_ports end_i] [get_bd_pins NoC/end_i]
-  connect_bd_net -net rst_ps7_0_100M_peripheral_aresetn [get_bd_pins NoC/reset] [get_bd_pins dma/aresetn] [get_bd_pins zynq/S00_ARESETN]
+  connect_bd_net -net rst_ps7_0_100M_peripheral_aresetn [get_bd_pins NoC/reset] [get_bd_pins dma/aresetn] [get_bd_pins system_ila_0/resetn] [get_bd_pins zynq/S00_ARESETN]
   connect_bd_net -net send_i_1 [get_bd_ports send_i] [get_bd_pins NoC/send_i]
-  connect_bd_net -net zynq_FCLK_CLK2 [get_bd_pins NoC/clock] [get_bd_pins dma/m_axi_s2mm_aclk] [get_bd_pins zynq/FCLK_CLK0]
+  connect_bd_net -net zynq_FCLK_CLK2 [get_bd_pins NoC/clock] [get_bd_pins dma/m_axi_s2mm_aclk] [get_bd_pins system_ila_0/clk] [get_bd_pins zynq/FCLK_CLK0]
 
   # Create address segments
   create_bd_addr_seg -range 0x20000000 -offset 0x00000000 [get_bd_addr_spaces dma/axi_dma_0/Data_MM2S] [get_bd_addr_segs zynq/processing_system7_0/S_AXI_HP0/HP0_DDR_LOWOCM] SEG_processing_system7_0_HP0_DDR_LOWOCM
