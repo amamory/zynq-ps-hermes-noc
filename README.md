@@ -6,6 +6,13 @@ This repo contains scripts to recreate a Vivado and xSDK project Zynq PS connect
 
 ![the design](ps_hermes.png)
 
+
+The following ILA's waveform shows the design working in the FPGA.
+This design connects the master port of the AXI DMA to the slave port of an Hermes router of address 0x11 (slot 0). The packet is directed to a neighbor router of address 0x01 (slot1), and finally, the master port of router 0x01 sends the packet back to the AMR via DMA slave interface.
+
+![the waveform](waveform.png)
+
+
 # How to download it
 
 This repository has custom IPs included as git submodules. Thus, the following command is required to download all its depedencies.
