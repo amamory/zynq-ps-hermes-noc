@@ -17,9 +17,9 @@
 #define PACKET_SIZE 3
 
 // PS is receiving from the device
-#define RX_INTR_ID		XPAR_FABRIC_DMA_AXI_DMA_0_S2MM_INTROUT_INTR
+#define RX_INTR_ID		XPAR_FABRIC_ZYNQ_AXI_DMA_0_S2MM_INTROUT_INTR
 // PS is sending to the device
-#define TX_INTR_ID		XPAR_FABRIC_DMA_AXI_DMA_0_MM2S_INTROUT_INTR
+#define TX_INTR_ID		XPAR_FABRIC_ZYNQ_AXI_DMA_0_MM2S_INTROUT_INTR
 
 u32 checkIdle(u32 baseAddress,u32 offset);
 static void dmaTX_ISR(void *CallBackRef);

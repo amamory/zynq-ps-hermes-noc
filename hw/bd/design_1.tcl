@@ -1,6 +1,6 @@
 
 ################################################################
-# This is a generated script based on design: ps_hermes
+# This is a generated script based on design: ps_hermes_ok2
 #
 # Though there are limitations about the generated script,
 # the main purpose of this utility is to make learning
@@ -35,7 +35,7 @@ if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
 ################################################################
 
 # To test this script, run the following commands from Vivado Tcl console:
-# source ps_hermes_script.tcl
+# source ps_hermes_ok2_script.tcl
 
 set bCheckIPsPassed 1
 ##################################################################
@@ -45,7 +45,6 @@ set bCheckIPs 1
 if { $bCheckIPs == 1 } {
    set list_check_ips "\ 
 xilinx.com:ip:system_ila:1.1\
-xilinx.com:ip:util_vector_logic:2.0\
 xilinx.com:ip:xlconcat:2.1\
 xilinx.com:ip:xlslice:1.0\
 xilinx.com:ip:axi_dma:7.1\
@@ -131,7 +130,7 @@ proc create_hier_cell_R11 { parentCell nameHier } {
   create_bd_pin -dir I -from 7 -to 0 dip_i
   create_bd_pin -dir I end_i
   create_bd_pin -dir O -from 3 -to 0 led_o
-  create_bd_pin -dir I -type rst reset
+  create_bd_pin -dir I -type rst reset_n
   create_bd_pin -dir I send_i
 
   # Create instance: RouterCC_0, and set properties
@@ -179,7 +178,7 @@ proc create_hier_cell_R11 { parentCell nameHier } {
 
   # Create port connections
   connect_bd_net -net Net [get_bd_pins clock] [get_bd_pins RouterCC_0/clock] [get_bd_pins Router_Sink_E/clock] [get_bd_pins Router_Sink_L/clock] [get_bd_pins Router_Sink_N/clock] [get_bd_pins Router_Sink_S/clock] [get_bd_pins Router_Source_E/clock] [get_bd_pins axis_m_const_N/clock] [get_bd_pins axis_m_const_S/clock]
-  connect_bd_net -net Net1 [get_bd_pins reset] [get_bd_pins RouterCC_0/reset] [get_bd_pins Router_Sink_E/reset] [get_bd_pins Router_Sink_L/reset] [get_bd_pins Router_Sink_N/reset] [get_bd_pins Router_Sink_S/reset] [get_bd_pins Router_Source_E/reset] [get_bd_pins axis_m_const_N/reset] [get_bd_pins axis_m_const_S/reset]
+  connect_bd_net -net Net1 [get_bd_pins reset_n] [get_bd_pins RouterCC_0/reset_n] [get_bd_pins Router_Sink_E/reset] [get_bd_pins Router_Sink_L/reset] [get_bd_pins Router_Sink_N/reset] [get_bd_pins Router_Sink_S/reset] [get_bd_pins Router_Source_E/reset]
   connect_bd_net -net Net2 [get_bd_pins dip_i] [get_bd_pins Router_Source_E/dip_i]
   connect_bd_net -net Router_Sink_0_led_o [get_bd_pins Router_Sink_S/led_o] [get_bd_pins xlconcat_0/In2]
   connect_bd_net -net Router_Sink_1_led_o [get_bd_pins Router_Sink_E/led_o] [get_bd_pins xlconcat_0/In0]
@@ -293,7 +292,7 @@ proc create_hier_cell_R01 { parentCell nameHier } {
 
   # Create port connections
   connect_bd_net -net Net [get_bd_pins clock] [get_bd_pins RouterCC_0/clock] [get_bd_pins Router_Sink_N/clock] [get_bd_pins Router_Sink_S/clock] [get_bd_pins Router_Sink_W/clock] [get_bd_pins Router_Source_W/clock] [get_bd_pins axis_m_const_L/clock] [get_bd_pins axis_m_const_N/clock] [get_bd_pins axis_m_const_S/clock]
-  connect_bd_net -net Net1 [get_bd_pins reset] [get_bd_pins RouterCC_0/reset] [get_bd_pins Router_Sink_N/reset] [get_bd_pins Router_Sink_S/reset] [get_bd_pins Router_Sink_W/reset] [get_bd_pins Router_Source_W/reset] [get_bd_pins axis_m_const_L/reset] [get_bd_pins axis_m_const_N/reset] [get_bd_pins axis_m_const_S/reset]
+  connect_bd_net -net Net1 [get_bd_pins reset] [get_bd_pins RouterCC_0/reset_n] [get_bd_pins Router_Sink_N/reset] [get_bd_pins Router_Sink_S/reset] [get_bd_pins Router_Sink_W/reset] [get_bd_pins Router_Source_W/reset]
   connect_bd_net -net Router_Sink_N_led_o [get_bd_pins Router_Sink_N/led_o] [get_bd_pins xlconcat_0/In2]
   connect_bd_net -net Router_Sink_S_led_o [get_bd_pins Router_Sink_S/led_o] [get_bd_pins xlconcat_0/In3]
   connect_bd_net -net Router_Sink_W_led_o [get_bd_pins Router_Sink_W/led_o] [get_bd_pins xlconcat_0/In1]
@@ -344,13 +343,26 @@ proc create_hier_cell_zynq { parentCell nameHier } {
   # Create interface pins
   create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:ddrx_rtl:1.0 DDR
   create_bd_intf_pin -mode Master -vlnv xilinx.com:display_processing_system7:fixedio_rtl:1.0 FIXED_IO
-  create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:aximm_rtl:1.0 M00_AXI
-  create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 S_AXI_HP0
+  create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 M_AXIS_DMA
+  create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0 S_AXIS_DMA
 
   # Create pins
-  create_bd_pin -dir O -type clk FCLK_CLK0
-  create_bd_pin -dir I -from 1 -to 0 -type intr IRQ_F2P
-  create_bd_pin -dir O -from 0 -to 0 -type rst S00_ARESETN
+  create_bd_pin -dir O -type clk clock
+  create_bd_pin -dir O -from 1 -to 0 -type intr irq
+  create_bd_pin -dir O -from 0 -to 0 -type rst reset_n
+
+  # Create instance: axi_dma_0, and set properties
+  set axi_dma_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_dma:7.1 axi_dma_0 ]
+  set_property -dict [ list \
+   CONFIG.c_include_sg {0} \
+   CONFIG.c_sg_include_stscntrl_strm {0} \
+ ] $axi_dma_0
+
+  # Create instance: axi_smc, and set properties
+  set axi_smc [ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 axi_smc ]
+  set_property -dict [ list \
+   CONFIG.NUM_SI {2} \
+ ] $axi_smc
 
   # Create instance: processing_system7_0, and set properties
   set processing_system7_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:processing_system7:5.5 processing_system7_0 ]
@@ -761,99 +773,34 @@ proc create_hier_cell_zynq { parentCell nameHier } {
   # Create instance: rst_ps7_0_100M, and set properties
   set rst_ps7_0_100M [ create_bd_cell -type ip -vlnv xilinx.com:ip:proc_sys_reset:5.0 rst_ps7_0_100M ]
 
-  # Create interface connections
-  connect_bd_intf_net -intf_net Conn1 [get_bd_intf_pins S_AXI_HP0] [get_bd_intf_pins processing_system7_0/S_AXI_HP0]
-  connect_bd_intf_net -intf_net processing_system7_0_DDR [get_bd_intf_pins DDR] [get_bd_intf_pins processing_system7_0/DDR]
-  connect_bd_intf_net -intf_net processing_system7_0_FIXED_IO [get_bd_intf_pins FIXED_IO] [get_bd_intf_pins processing_system7_0/FIXED_IO]
-  connect_bd_intf_net -intf_net processing_system7_0_M_AXI_GP0 [get_bd_intf_pins processing_system7_0/M_AXI_GP0] [get_bd_intf_pins ps7_0_axi_periph/S00_AXI]
-  connect_bd_intf_net -intf_net ps7_0_axi_periph_M00_AXI [get_bd_intf_pins M00_AXI] [get_bd_intf_pins ps7_0_axi_periph/M00_AXI]
-
-  # Create port connections
-  connect_bd_net -net IRQ_F2P_1 [get_bd_pins IRQ_F2P] [get_bd_pins processing_system7_0/IRQ_F2P]
-  connect_bd_net -net processing_system7_0_FCLK_CLK0 [get_bd_pins FCLK_CLK0] [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK] [get_bd_pins processing_system7_0/S_AXI_HP0_ACLK] [get_bd_pins ps7_0_axi_periph/ACLK] [get_bd_pins ps7_0_axi_periph/M00_ACLK] [get_bd_pins ps7_0_axi_periph/S00_ACLK] [get_bd_pins rst_ps7_0_100M/slowest_sync_clk]
-  connect_bd_net -net processing_system7_0_FCLK_RESET0_N [get_bd_pins processing_system7_0/FCLK_RESET0_N] [get_bd_pins rst_ps7_0_100M/ext_reset_in]
-  connect_bd_net -net rst_ps7_0_100M_interconnect_aresetn [get_bd_pins ps7_0_axi_periph/ARESETN] [get_bd_pins rst_ps7_0_100M/interconnect_aresetn]
-  connect_bd_net -net rst_ps7_0_100M_peripheral_aresetn [get_bd_pins S00_ARESETN] [get_bd_pins ps7_0_axi_periph/M00_ARESETN] [get_bd_pins ps7_0_axi_periph/S00_ARESETN] [get_bd_pins rst_ps7_0_100M/peripheral_aresetn]
-
-  # Restore current instance
-  current_bd_instance $oldCurInst
-}
-
-# Hierarchical cell: dma
-proc create_hier_cell_dma { parentCell nameHier } {
-
-  variable script_folder
-
-  if { $parentCell eq "" || $nameHier eq "" } {
-     catch {common::send_msg_id "BD_TCL-102" "ERROR" "create_hier_cell_dma() - Empty argument(s)!"}
-     return
-  }
-
-  # Get object for parentCell
-  set parentObj [get_bd_cells $parentCell]
-  if { $parentObj == "" } {
-     catch {common::send_msg_id "BD_TCL-100" "ERROR" "Unable to find parent cell <$parentCell>!"}
-     return
-  }
-
-  # Make sure parentObj is hier blk
-  set parentType [get_property TYPE $parentObj]
-  if { $parentType ne "hier" } {
-     catch {common::send_msg_id "BD_TCL-101" "ERROR" "Parent <$parentObj> has TYPE = <$parentType>. Expected to be <hier>."}
-     return
-  }
-
-  # Save current instance; Restore later
-  set oldCurInst [current_bd_instance .]
-
-  # Set parent object as current
-  current_bd_instance $parentObj
-
-  # Create cell and set as current instance
-  set hier_obj [create_bd_cell -type hier $nameHier]
-  current_bd_instance $hier_obj
-
-  # Create interface pins
-  create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:aximm_rtl:1.0 M00_AXI
-  create_bd_intf_pin -mode Master -vlnv xilinx.com:interface:axis_rtl:1.0 M_AXIS_MM2S
-  create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:axis_rtl:1.0 S_AXIS_S2MM
-  create_bd_intf_pin -mode Slave -vlnv xilinx.com:interface:aximm_rtl:1.0 S_AXI_LITE
-
-  # Create pins
-  create_bd_pin -dir I -type rst aresetn
-  create_bd_pin -dir O -from 1 -to 0 -type intr irq
-  create_bd_pin -dir I -type clk m_axi_s2mm_aclk
-
-  # Create instance: axi_dma_0, and set properties
-  set axi_dma_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_dma:7.1 axi_dma_0 ]
-  set_property -dict [ list \
-   CONFIG.c_include_sg {0} \
-   CONFIG.c_sg_include_stscntrl_strm {0} \
- ] $axi_dma_0
-
-  # Create instance: axi_smc, and set properties
-  set axi_smc [ create_bd_cell -type ip -vlnv xilinx.com:ip:smartconnect:1.0 axi_smc ]
-  set_property -dict [ list \
-   CONFIG.NUM_SI {2} \
- ] $axi_smc
-
   # Create instance: xlconcat_0, and set properties
   set xlconcat_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 xlconcat_0 ]
 
   # Create interface connections
-  connect_bd_intf_net -intf_net Router_Board_0_m_L [get_bd_intf_pins S_AXIS_S2MM] [get_bd_intf_pins axi_dma_0/S_AXIS_S2MM]
-  connect_bd_intf_net -intf_net axi_dma_0_M_AXIS_MM2S [get_bd_intf_pins M_AXIS_MM2S] [get_bd_intf_pins axi_dma_0/M_AXIS_MM2S]
+  connect_bd_intf_net -intf_net S_AXIS_S2MM_1 [get_bd_intf_pins S_AXIS_DMA] [get_bd_intf_pins axi_dma_0/S_AXIS_S2MM]
+  set_property -dict [ list \
+HDL_ATTRIBUTE.DEBUG {true} \
+ ] [get_bd_intf_nets S_AXIS_S2MM_1]
+  connect_bd_intf_net -intf_net axi_dma_0_M_AXIS_MM2S [get_bd_intf_pins M_AXIS_DMA] [get_bd_intf_pins axi_dma_0/M_AXIS_MM2S]
+  set_property -dict [ list \
+HDL_ATTRIBUTE.DEBUG {true} \
+ ] [get_bd_intf_nets axi_dma_0_M_AXIS_MM2S]
   connect_bd_intf_net -intf_net axi_dma_0_M_AXI_MM2S [get_bd_intf_pins axi_dma_0/M_AXI_MM2S] [get_bd_intf_pins axi_smc/S00_AXI]
   connect_bd_intf_net -intf_net axi_dma_0_M_AXI_S2MM [get_bd_intf_pins axi_dma_0/M_AXI_S2MM] [get_bd_intf_pins axi_smc/S01_AXI]
-  connect_bd_intf_net -intf_net axi_smc_M00_AXI [get_bd_intf_pins M00_AXI] [get_bd_intf_pins axi_smc/M00_AXI]
-  connect_bd_intf_net -intf_net ps7_0_axi_periph_M00_AXI [get_bd_intf_pins S_AXI_LITE] [get_bd_intf_pins axi_dma_0/S_AXI_LITE]
+  connect_bd_intf_net -intf_net axi_smc_M00_AXI [get_bd_intf_pins axi_smc/M00_AXI] [get_bd_intf_pins processing_system7_0/S_AXI_HP0]
+  connect_bd_intf_net -intf_net processing_system7_0_DDR [get_bd_intf_pins DDR] [get_bd_intf_pins processing_system7_0/DDR]
+  connect_bd_intf_net -intf_net processing_system7_0_FIXED_IO [get_bd_intf_pins FIXED_IO] [get_bd_intf_pins processing_system7_0/FIXED_IO]
+  connect_bd_intf_net -intf_net processing_system7_0_M_AXI_GP0 [get_bd_intf_pins processing_system7_0/M_AXI_GP0] [get_bd_intf_pins ps7_0_axi_periph/S00_AXI]
+  connect_bd_intf_net -intf_net ps7_0_axi_periph_M00_AXI [get_bd_intf_pins axi_dma_0/S_AXI_LITE] [get_bd_intf_pins ps7_0_axi_periph/M00_AXI]
 
   # Create port connections
   connect_bd_net -net axi_dma_0_mm2s_introut [get_bd_pins axi_dma_0/mm2s_introut] [get_bd_pins xlconcat_0/In0]
   connect_bd_net -net axi_dma_0_s2mm_introut [get_bd_pins axi_dma_0/s2mm_introut] [get_bd_pins xlconcat_0/In1]
-  connect_bd_net -net processing_system7_0_FCLK_CLK0 [get_bd_pins m_axi_s2mm_aclk] [get_bd_pins axi_dma_0/m_axi_mm2s_aclk] [get_bd_pins axi_dma_0/m_axi_s2mm_aclk] [get_bd_pins axi_dma_0/s_axi_lite_aclk] [get_bd_pins axi_smc/aclk]
-  connect_bd_net -net rst_ps7_0_100M_peripheral_aresetn [get_bd_pins aresetn] [get_bd_pins axi_dma_0/axi_resetn] [get_bd_pins axi_smc/aresetn]
-  connect_bd_net -net xlconcat_0_dout [get_bd_pins irq] [get_bd_pins xlconcat_0/dout]
+  connect_bd_net -net dma_irq [get_bd_pins irq] [get_bd_pins processing_system7_0/IRQ_F2P] [get_bd_pins xlconcat_0/dout]
+  connect_bd_net -net processing_system7_0_FCLK_CLK0 [get_bd_pins clock] [get_bd_pins axi_dma_0/m_axi_mm2s_aclk] [get_bd_pins axi_dma_0/m_axi_s2mm_aclk] [get_bd_pins axi_dma_0/s_axi_lite_aclk] [get_bd_pins axi_smc/aclk] [get_bd_pins processing_system7_0/FCLK_CLK0] [get_bd_pins processing_system7_0/M_AXI_GP0_ACLK] [get_bd_pins processing_system7_0/S_AXI_HP0_ACLK] [get_bd_pins ps7_0_axi_periph/ACLK] [get_bd_pins ps7_0_axi_periph/M00_ACLK] [get_bd_pins ps7_0_axi_periph/S00_ACLK] [get_bd_pins rst_ps7_0_100M/slowest_sync_clk]
+  connect_bd_net -net processing_system7_0_FCLK_RESET0_N [get_bd_pins processing_system7_0/FCLK_RESET0_N] [get_bd_pins rst_ps7_0_100M/ext_reset_in]
+  connect_bd_net -net rst_ps7_0_100M_interconnect_aresetn [get_bd_pins ps7_0_axi_periph/ARESETN] [get_bd_pins rst_ps7_0_100M/interconnect_aresetn]
+  connect_bd_net -net rst_ps7_0_100M_peripheral_aresetn [get_bd_pins reset_n] [get_bd_pins axi_dma_0/axi_resetn] [get_bd_pins axi_smc/aresetn] [get_bd_pins ps7_0_axi_periph/M00_ARESETN] [get_bd_pins ps7_0_axi_periph/S00_ARESETN] [get_bd_pins rst_ps7_0_100M/peripheral_aresetn]
 
   # Restore current instance
   current_bd_instance $oldCurInst
@@ -904,8 +851,7 @@ proc create_hier_cell_NoC { parentCell nameHier } {
   create_bd_pin -dir I -from 7 -to 0 dip_i
   create_bd_pin -dir I end_i
   create_bd_pin -dir O -from 7 -to 0 led_o
-  create_bd_pin -dir O -from 0 -to 0 noc_clock_o
-  create_bd_pin -dir I -type rst reset
+  create_bd_pin -dir I -type rst reset_n
   create_bd_pin -dir I -from 1 -to 0 send_i
 
   # Create instance: R01
@@ -913,22 +859,6 @@ proc create_hier_cell_NoC { parentCell nameHier } {
 
   # Create instance: R11
   create_hier_cell_R11 $hier_obj R11
-
-  # Create instance: inv_clock, and set properties
-  set inv_clock [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 inv_clock ]
-  set_property -dict [ list \
-   CONFIG.C_OPERATION {not} \
-   CONFIG.C_SIZE {1} \
-   CONFIG.LOGO_FILE {data/sym_notgate.png} \
- ] $inv_clock
-
-  # Create instance: inv_rst, and set properties
-  set inv_rst [ create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 inv_rst ]
-  set_property -dict [ list \
-   CONFIG.C_OPERATION {not} \
-   CONFIG.C_SIZE {1} \
-   CONFIG.LOGO_FILE {data/sym_notgate.png} \
- ] $inv_rst
 
   # Create instance: xlconcat_0, and set properties
   set xlconcat_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:xlconcat:2.1 xlconcat_0 ]
@@ -976,16 +906,14 @@ HDL_ATTRIBUTE.DEBUG {true} \
   # Create port connections
   connect_bd_net -net R01_led_01_o [get_bd_pins R01/led_o] [get_bd_pins xlconcat_0/In0]
   connect_bd_net -net R11_led_o [get_bd_pins R11/led_o] [get_bd_pins xlconcat_0/In1]
-  connect_bd_net -net clock_1 [get_bd_pins clock] [get_bd_pins inv_clock/Op1]
+  connect_bd_net -net clock_1 [get_bd_pins clock] [get_bd_pins R01/clock] [get_bd_pins R11/clock]
   connect_bd_net -net dip_i_1 [get_bd_pins dip_i] [get_bd_pins R01/dip_i] [get_bd_pins R11/dip_i]
   connect_bd_net -net end_i_1 [get_bd_pins end_i] [get_bd_pins R01/end_i] [get_bd_pins R11/end_i]
-  connect_bd_net -net reset_1 [get_bd_pins reset] [get_bd_pins inv_rst/Op1]
-  connect_bd_net -net rst_ps7_0_100M_peripheral_aresetn [get_bd_pins R01/reset] [get_bd_pins R11/reset] [get_bd_pins inv_rst/Res]
+  connect_bd_net -net rst_ps7_0_100M_peripheral_aresetn [get_bd_pins reset_n] [get_bd_pins R01/reset] [get_bd_pins R11/reset_n]
   connect_bd_net -net send_i_1 [get_bd_pins send_i] [get_bd_pins xlslice_0/Din] [get_bd_pins xlslice_1/Din]
   connect_bd_net -net xlconcat_0_dout [get_bd_pins led_o] [get_bd_pins xlconcat_0/dout]
   connect_bd_net -net xlslice_0_Dout [get_bd_pins R11/send_i] [get_bd_pins xlslice_0/Dout]
   connect_bd_net -net xlslice_1_Dout [get_bd_pins R01/send_i] [get_bd_pins xlslice_1/Dout]
-  connect_bd_net -net zynq_FCLK_CLK2 [get_bd_pins noc_clock_o] [get_bd_pins R01/clock] [get_bd_pins R11/clock] [get_bd_pins inv_clock/Res]
 
   # Restore current instance
   current_bd_instance $oldCurInst
@@ -1036,9 +964,6 @@ proc create_root_design { parentCell } {
   # Create instance: NoC
   create_hier_cell_NoC [current_bd_instance .] NoC
 
-  # Create instance: dma
-  create_hier_cell_dma [current_bd_instance .] dma
-
   # Create instance: system_ila_0, and set properties
   set system_ila_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:system_ila:1.1 system_ila_0 ]
   set_property -dict [ list \
@@ -1065,28 +990,32 @@ proc create_root_design { parentCell } {
 
   # Create interface connections
 connect_bd_intf_net -intf_net Conn1 [get_bd_intf_pins NoC/W_m] [get_bd_intf_pins system_ila_0/SLOT_2_AXIS]
-  connect_bd_intf_net -intf_net S_AXIS_S2MM_1 [get_bd_intf_pins NoC/L_m] [get_bd_intf_pins dma/S_AXIS_S2MM]
+  connect_bd_intf_net -intf_net S_AXIS_S2MM_1 [get_bd_intf_pins NoC/L_m] [get_bd_intf_pins zynq/S_AXIS_DMA]
 connect_bd_intf_net -intf_net [get_bd_intf_nets S_AXIS_S2MM_1] [get_bd_intf_pins NoC/L_m] [get_bd_intf_pins system_ila_0/SLOT_1_AXIS]
-  connect_bd_intf_net -intf_net axi_smc_M00_AXI [get_bd_intf_pins dma/M00_AXI] [get_bd_intf_pins zynq/S_AXI_HP0]
-  connect_bd_intf_net -intf_net dma_M_AXIS_MM2S [get_bd_intf_pins NoC/L_s] [get_bd_intf_pins dma/M_AXIS_MM2S]
+  set_property -dict [ list \
+HDL_ATTRIBUTE.DEBUG {true} \
+ ] [get_bd_intf_nets S_AXIS_S2MM_1]
+  connect_bd_intf_net -intf_net dma_M_AXIS_MM2S [get_bd_intf_pins NoC/L_s] [get_bd_intf_pins zynq/M_AXIS_DMA]
 connect_bd_intf_net -intf_net [get_bd_intf_nets dma_M_AXIS_MM2S] [get_bd_intf_pins NoC/L_s] [get_bd_intf_pins system_ila_0/SLOT_0_AXIS]
+  set_property -dict [ list \
+HDL_ATTRIBUTE.DEBUG {true} \
+ ] [get_bd_intf_nets dma_M_AXIS_MM2S]
   connect_bd_intf_net -intf_net processing_system7_0_DDR [get_bd_intf_ports DDR] [get_bd_intf_pins zynq/DDR]
   connect_bd_intf_net -intf_net processing_system7_0_FIXED_IO [get_bd_intf_ports FIXED_IO] [get_bd_intf_pins zynq/FIXED_IO]
-  connect_bd_intf_net -intf_net ps7_0_axi_periph_M00_AXI [get_bd_intf_pins dma/S_AXI_LITE] [get_bd_intf_pins zynq/M00_AXI]
 
   # Create port connections
   connect_bd_net -net NoC_dout_0 [get_bd_ports led_o] [get_bd_pins NoC/led_o]
   connect_bd_net -net dip_i_1 [get_bd_ports dip_i] [get_bd_pins NoC/dip_i]
-  connect_bd_net -net dma_dout [get_bd_pins dma/irq] [get_bd_pins system_ila_0/probe0] [get_bd_pins zynq/IRQ_F2P]
+  connect_bd_net -net dma_dout [get_bd_pins system_ila_0/probe0] [get_bd_pins zynq/irq]
   connect_bd_net -net end_i_1 [get_bd_ports end_i] [get_bd_pins NoC/end_i]
-  connect_bd_net -net rst_ps7_0_100M_peripheral_aresetn [get_bd_pins NoC/reset] [get_bd_pins dma/aresetn] [get_bd_pins system_ila_0/resetn] [get_bd_pins zynq/S00_ARESETN]
+  connect_bd_net -net rst_ps7_0_100M_peripheral_aresetn [get_bd_pins NoC/reset_n] [get_bd_pins system_ila_0/resetn] [get_bd_pins zynq/reset_n]
   connect_bd_net -net send_i_1 [get_bd_ports send_i] [get_bd_pins NoC/send_i]
-  connect_bd_net -net zynq_FCLK_CLK2 [get_bd_pins NoC/clock] [get_bd_pins dma/m_axi_s2mm_aclk] [get_bd_pins system_ila_0/clk] [get_bd_pins zynq/FCLK_CLK0]
+  connect_bd_net -net zynq_FCLK_CLK2 [get_bd_pins NoC/clock] [get_bd_pins system_ila_0/clk] [get_bd_pins zynq/clock]
 
   # Create address segments
-  create_bd_addr_seg -range 0x20000000 -offset 0x00000000 [get_bd_addr_spaces dma/axi_dma_0/Data_MM2S] [get_bd_addr_segs zynq/processing_system7_0/S_AXI_HP0/HP0_DDR_LOWOCM] SEG_processing_system7_0_HP0_DDR_LOWOCM
-  create_bd_addr_seg -range 0x20000000 -offset 0x00000000 [get_bd_addr_spaces dma/axi_dma_0/Data_S2MM] [get_bd_addr_segs zynq/processing_system7_0/S_AXI_HP0/HP0_DDR_LOWOCM] SEG_processing_system7_0_HP0_DDR_LOWOCM
-  create_bd_addr_seg -range 0x00010000 -offset 0x40400000 [get_bd_addr_spaces zynq/processing_system7_0/Data] [get_bd_addr_segs dma/axi_dma_0/S_AXI_LITE/Reg] SEG_axi_dma_0_Reg
+  create_bd_addr_seg -range 0x20000000 -offset 0x00000000 [get_bd_addr_spaces zynq/axi_dma_0/Data_MM2S] [get_bd_addr_segs zynq/processing_system7_0/S_AXI_HP0/HP0_DDR_LOWOCM] SEG_processing_system7_0_HP0_DDR_LOWOCM
+  create_bd_addr_seg -range 0x20000000 -offset 0x00000000 [get_bd_addr_spaces zynq/axi_dma_0/Data_S2MM] [get_bd_addr_segs zynq/processing_system7_0/S_AXI_HP0/HP0_DDR_LOWOCM] SEG_processing_system7_0_HP0_DDR_LOWOCM
+  create_bd_addr_seg -range 0x00010000 -offset 0x40400000 [get_bd_addr_spaces zynq/processing_system7_0/Data] [get_bd_addr_segs zynq/axi_dma_0/S_AXI_LITE/Reg] SEG_axi_dma_0_Reg
 
 
   # Restore current instance
@@ -1103,7 +1032,6 @@ proc available_tcl_procs { } {
    puts "# Available Tcl procedures to recreate hierarchical blocks:"
    puts "#"
    puts "#    create_hier_cell_NoC parentCell nameHier"
-   puts "#    create_hier_cell_dma parentCell nameHier"
    puts "#    create_hier_cell_zynq parentCell nameHier"
    puts "#    create_hier_cell_R01 parentCell nameHier"
    puts "#    create_hier_cell_R11 parentCell nameHier"
