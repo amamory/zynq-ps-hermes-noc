@@ -1,6 +1,6 @@
 
 ################################################################
-# This is a generated script based on design: ps_hermes_ok2
+# This is a generated script based on design: ps_hermes_ok3
 #
 # Though there are limitations about the generated script,
 # the main purpose of this utility is to make learning
@@ -35,7 +35,7 @@ if { [string first $scripts_vivado_version $current_vivado_version] == -1 } {
 ################################################################
 
 # To test this script, run the following commands from Vivado Tcl console:
-# source ps_hermes_ok2_script.tcl
+# source ps_hermes_ok3_script.tcl
 
 set bCheckIPsPassed 1
 ##################################################################
@@ -178,7 +178,7 @@ proc create_hier_cell_R11 { parentCell nameHier } {
 
   # Create port connections
   connect_bd_net -net Net [get_bd_pins clock] [get_bd_pins RouterCC_0/clock] [get_bd_pins Router_Sink_E/clock] [get_bd_pins Router_Sink_L/clock] [get_bd_pins Router_Sink_N/clock] [get_bd_pins Router_Sink_S/clock] [get_bd_pins Router_Source_E/clock] [get_bd_pins axis_m_const_N/clock] [get_bd_pins axis_m_const_S/clock]
-  connect_bd_net -net Net1 [get_bd_pins reset_n] [get_bd_pins RouterCC_0/reset_n] [get_bd_pins Router_Sink_E/reset] [get_bd_pins Router_Sink_L/reset] [get_bd_pins Router_Sink_N/reset] [get_bd_pins Router_Sink_S/reset] [get_bd_pins Router_Source_E/reset]
+  connect_bd_net -net Net1 [get_bd_pins reset_n] [get_bd_pins RouterCC_0/reset_n] [get_bd_pins Router_Sink_E/reset_n] [get_bd_pins Router_Sink_L/reset_n] [get_bd_pins Router_Sink_N/reset_n] [get_bd_pins Router_Sink_S/reset_n] [get_bd_pins Router_Source_E/reset_n]
   connect_bd_net -net Net2 [get_bd_pins dip_i] [get_bd_pins Router_Source_E/dip_i]
   connect_bd_net -net Router_Sink_0_led_o [get_bd_pins Router_Sink_S/led_o] [get_bd_pins xlconcat_0/In2]
   connect_bd_net -net Router_Sink_1_led_o [get_bd_pins Router_Sink_E/led_o] [get_bd_pins xlconcat_0/In0]
@@ -292,7 +292,7 @@ proc create_hier_cell_R01 { parentCell nameHier } {
 
   # Create port connections
   connect_bd_net -net Net [get_bd_pins clock] [get_bd_pins RouterCC_0/clock] [get_bd_pins Router_Sink_N/clock] [get_bd_pins Router_Sink_S/clock] [get_bd_pins Router_Sink_W/clock] [get_bd_pins Router_Source_W/clock] [get_bd_pins axis_m_const_L/clock] [get_bd_pins axis_m_const_N/clock] [get_bd_pins axis_m_const_S/clock]
-  connect_bd_net -net Net1 [get_bd_pins reset] [get_bd_pins RouterCC_0/reset_n] [get_bd_pins Router_Sink_N/reset] [get_bd_pins Router_Sink_S/reset] [get_bd_pins Router_Sink_W/reset] [get_bd_pins Router_Source_W/reset]
+  connect_bd_net -net Net1 [get_bd_pins reset] [get_bd_pins RouterCC_0/reset_n] [get_bd_pins Router_Sink_N/reset_n] [get_bd_pins Router_Sink_S/reset_n] [get_bd_pins Router_Sink_W/reset_n] [get_bd_pins Router_Source_W/reset_n]
   connect_bd_net -net Router_Sink_N_led_o [get_bd_pins Router_Sink_N/led_o] [get_bd_pins xlconcat_0/In2]
   connect_bd_net -net Router_Sink_S_led_o [get_bd_pins Router_Sink_S/led_o] [get_bd_pins xlconcat_0/In3]
   connect_bd_net -net Router_Sink_W_led_o [get_bd_pins Router_Sink_W/led_o] [get_bd_pins xlconcat_0/In1]

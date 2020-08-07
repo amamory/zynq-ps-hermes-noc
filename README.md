@@ -7,11 +7,25 @@ This repo contains scripts to recreate a Vivado and xSDK project Zynq PS connect
 ![the design](ps_hermes.png)
 
 
-The following ILA's waveform shows the design working in the FPGA.
-This design connects the master port of the AXI DMA to the slave port of an Hermes router of address 0x11 (slot 0). The packet is directed to a neighbor router of address 0x01 (slot1), and finally, the master port of router 0x01 sends the packet back to the AMR via DMA slave interface.
+The following ILA's waveform shows the design working in the FPGA running the application *dma_test* or *dma_test_int*. This application sends a packet with 
+
+```
+u32 hermes_pkg[] = {0x0001,0x0001,0x0003};
+```
+
+This corresponds to a loopback via ARM => DMA => R11 => R01 => DMA => ARM.
+Any packet sent to address 0x0001 will perform the same loopback behavior.
+
+This design connects the master port of the AXI DMA to the slave port of an Hermes router of address 0x11 (slot 0). The packet is directed to a neighbor router of address 0x01 (slot1), and finally, the master local port of router 0x01 sends the packet back to the ARM via DMA slave interface.
 
 ![the waveform](waveform.png)
 
+
+# Applications
+
+ - dma_test: sends a loopback packet via ARM => DMA => R11 => R01 => DMA => ARM. DMA is using polling mode;
+- dma_test_int: sends a loopback packet via ARM => DMA => R11 => R01 => DMA => ARM. DMA is using interruption mode;
+- xaxidma_example_simple_intr: DMA testing [example](https://github.com/Xilinx/embeddedsw/blob/master/XilinxProcessorIPLib/drivers/axidma/examples/xaxidma_example_simple_intr.c) based in interruption.
 
 # How to download it
 
