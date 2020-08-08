@@ -20,6 +20,7 @@ This design connects the master port of the AXI DMA to the slave port of an Herm
 
 ![the waveform](waveform.png)
 
+This design uses Zedboard's buttons, dip switches, and LEDs for testing the router. Please read the comments on hw/xdc/const.xdc to see how to interact with the design. If you have other board rather than zed, just remap these ports to your own board.
 
 # Applications
 
