@@ -4,7 +4,13 @@ This repo contains scripts to recreate a Vivado and xSDK project Zynq PS connect
 
 # The module design
 
-![the design](ps_hermes.png)
+The next 3 images show the block design: top block; NoC block; Zynq block
+
+![the top design](ps_hermes.png)
+
+![the NoC design](ps_hermes_noc.png)
+
+![the Zynq design](ps_hermes_zynq.png)
 
 
 The following ILA's waveform shows the design working in the FPGA running the application *dma_test* or *dma_test_int*. This application sends a packet with 
